@@ -2349,7 +2349,6 @@ Function write_variable_in_CASE_NOTE(variable)
 
   End if
 End function
-
 Function write_variable_in_SPEC_MEMO(variable)
   variable_array = split(variable, " ")					'Each word becomes its own member of the array called variable_array.
   For each word in variable_array 
