@@ -1526,45 +1526,45 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   	   LOOP until month_count = 36
   	PF3
 	EmreadScreen read_WREG_status, 2, 8, 50
-	If read_WREG_status = 03 THEN  WREG_status = "WREG = incap"
-	If read_WREG_status = 04 THEN  WREG_status = "WREG = resp for incap HH memb"
-	If read_WREG_status = 05 THEN  WREG_status = "WREG = age 60+"
-	If read_WREG_status = 06 THEN  WREG_status = "WREG = < age 16"
-	If read_WREG_status = 07 THEN  WREG_status = "WREG = age 16-17, live w/prnt/crgvr"
-	If read_WREG_status = 08 THEN  WREG_status = "WREG = resp for child < 6 yrs old"
-	If read_WREG_status = 09 THEN  WREG_status = "WREG = empl 30 hrs/wk or equiv"
-	If read_WREG_status = 10 THEN  WREG_status = "WREG = match grant part"
-	If read_WREG_status = 11 THEN  WREG_status = "WREG = rec/app for unemp ins"
-	If read_WREG_status = 12 THEN  WREG_status = "WREG = in schl, train prog or higher ed"
-	If read_WREG_status = 13 THEN  WREG_status = "WREG = in CD prog"
-	If read_WREG_status = 14 THEN  WREG_status = "WREG = rec MFIP"
-	If read_WREG_status = 20 THEN  WREG_status = "WREG = pend/rec DWP or WB"
-	If read_WREG_status = 22 THEN  WREG_status = "WREG = app for SSI"
-	If read_WREG_status = 15 THEN  WREG_status = "WREG = age 16-17 not live w/ prnt/crgvr"
-	If read_WREG_status = 16 THEN  WREG_status = "WREG = 50-59 yrs old"
-	If read_WREG_status = 21 THEN  WREG_status = "WREG = resp for child < 18"
-	If read_WREG_status = 17 THEN  WREG_status = "WREG = rec RCA or GA"
-	If read_WREG_status = 18 THEN  WREG_status = "WREG = provide home schl"
-	If read_WREG_status = 30 THEN  WREG_status = "WREG = mand FSET part"
-	If read_WREG_status = 02 THEN  WREG_status = "WREG = non-coop w/ FSET"
-	If read_WREG_status = 33 THEN  WREG_status = "WREG = non-coop w/ referral"
+	If read_WREG_status = "03" THEN  WREG_status = "WREG = incap"
+	If read_WREG_status = "04" THEN  WREG_status = "WREG = resp for incap HH memb"
+	If read_WREG_status = "05" THEN  WREG_status = "WREG = age 60+"
+	If read_WREG_status = "06" THEN  WREG_status = "WREG = < age 16"
+	If read_WREG_status = "07" THEN  WREG_status = "WREG = age 16-17, live w/prnt/crgvr"
+	If read_WREG_status = "08" THEN  WREG_status = "WREG = resp for child < 6 yrs old"
+	If read_WREG_status = "09" THEN  WREG_status = "WREG = empl 30 hrs/wk or equiv"
+	If read_WREG_status = "10" THEN  WREG_status = "WREG = match grant part"
+	If read_WREG_status = "11" THEN  WREG_status = "WREG = rec/app for unemp ins"
+	If read_WREG_status = "12" THEN  WREG_status = "WREG = in schl, train prog or higher ed"
+	If read_WREG_status = "13" THEN  WREG_status = "WREG = in CD prog"
+	If read_WREG_status = "14" THEN  WREG_status = "WREG = rec MFIP"
+	If read_WREG_status = "20" THEN  WREG_status = "WREG = pend/rec DWP or WB"
+	If read_WREG_status = "22" THEN  WREG_status = "WREG = app for SSI"
+	If read_WREG_status = "15" THEN  WREG_status = "WREG = age 16-17 not live w/ prnt/crgvr"
+	If read_WREG_status = "16" THEN  WREG_status = "WREG = 50-59 yrs old"
+	If read_WREG_status = "21" THEN  WREG_status = "WREG = resp for child < 18"
+	If read_WREG_status = "17" THEN  WREG_status = "WREG = rec RCA or GA"
+	If read_WREG_status = "18" THEN  WREG_status = "WREG = provide home schl"
+	If read_WREG_status = "30" THEN  WREG_status = "WREG = mand FSET part"
+	If read_WREG_status = "02" THEN  WREG_status = "WREG = non-coop w/ FSET"
+	If read_WREG_status = "33" THEN  WREG_status = "WREG = non-coop w/ referral"
 	If read_WREG_status = "__" THEN  WREG_status = "WREG = blank"
 	
 	EmreadScreen read_abawd_status, 2, 13, 50
-	If read_abawd_status = 01 THEN  abawd_status = "ABAWD = work reg exempt."
-    If read_abawd_status = 02 THEN  abawd_status = "ABAWD = < age 18."
-	If read_abawd_status = 03 THEN  abawd_status = "ABAWD = age 50+."
-	If read_abawd_status = 04 THEN  abawd_status = "ABAWD = crgvr of minor child."		
-	If read_abawd_status = 05 THEN  abawd_status = "ABAWD = pregnant."
-	If read_abawd_status = 06 THEN  abawd_status = "ABAWD = emp ave 20 hrs/wk."
-	If read_abawd_status = 07 THEN  abawd_status = "ABAWD = work exp participant."	
-	If read_abawd_status = 08 THEN  abawd_status = "ABAWD = othr E & T service."
-	If read_abawd_status = 09 THEN  abawd_status = "ABAWD = reside in waiver area."
-	If read_abawd_status = 10 THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
-	If read_abawd_status = 11 THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
-	If read_abawd_status = 12 THEN  abawd_status = "ABAWD = RCA or GA recip."
-	If read_abawd_status = 13 THEN  abawd_status = "ABAWD = ABAWD extension."
-	If read_abawd_status = "__" THEN  abawd_status = "WREG = blank"
+	If read_abawd_status = "01" THEN  abawd_status = "ABAWD = work reg exempt."
+    If read_abawd_status = "02" THEN  abawd_status = "ABAWD = < age 18."
+	If read_abawd_status = "03" THEN  abawd_status = "ABAWD = age 50+."
+	If read_abawd_status = "04" THEN  abawd_status = "ABAWD = crgvr of minor child."		
+	If read_abawd_status = "05" THEN  abawd_status = "ABAWD = pregnant."
+	If read_abawd_status = "06" THEN  abawd_status = "ABAWD = emp ave 20 hrs/wk."
+	If read_abawd_status = "07" THEN  abawd_status = "ABAWD = work exp participant."	
+	If read_abawd_status = "08" THEN  abawd_status = "ABAWD = othr E & T service."
+	If read_abawd_status = "09" THEN  abawd_status = "ABAWD = reside in waiver area."
+	If read_abawd_status = "10" THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
+	If read_abawd_status = "11" THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
+	If read_abawd_status = "12" THEN  abawd_status = "ABAWD = RCA or GA recip."
+	If read_abawd_status = "13" THEN  abawd_status = "ABAWD = ABAWD extension."
+	If read_abawd_status = "__" THEN  abawd_status = "ABAWD = blank"
 
 	variable_written_to = variable_written_to & "Member " & HH_member & "- " & WREG_status & ", " & abawd_status & "; "
      END IF
@@ -3425,9 +3425,7 @@ End function
 Function write_panel_to_MAXIS_ABPS(abps_supp_coop,abps_gc_status)
 	call navigate_to_screen("STAT","PARE")							'Starts by creating an array of all the kids on PARE
 	EMReadScreen abps_pare_check, 1, 2, 78
-	If abps_pare_check = "0" then
-		MsgBox "No PARE exists. Exiting Creating ABPS."
-	ElseIf abps_pare_check <> "0" then
+	If abps_pare_check <> "0" then
 		child_list = ""
 		row = 8
 		Do
@@ -4654,10 +4652,15 @@ End Function
 
 FUNCTION write_panel_to_MAXIS_PARE(appl_date, PARE_child_1, PARE_child_1_relation, PARE_child_1_verif, PARE_child_2, PARE_child_2_relation, PARE_child_2_verif, PARE_child_3, PARE_child_3_relation, PARE_child_3_verif, PARE_child_4, PARE_child_4_relation, PARE_child_4_verif, PARE_child_5, PARE_child_5_relation, PARE_child_5_verif, PARE_child_6, PARE_child_6_relation, PARE_child_6_verif)
 	Call navigate_to_screen("STAT", "PARE") 
-	call create_panel_if_nonexistent
-	CALL create_MAXIS_friendly_date(appl_date, 0, 5, 37)
-	EMWriteScreen DatePart("YYYY", appl_date), 5, 43
+	EMReadScreen num_of_PARE, 1, 2, 78
+	IF num_of_PARE = "0" THEN 
+		CALL write_value_and_transmit("NN", 20, 79)
+	ELSE
+		PF9
+	END IF
 	
+	CALL create_MAXIS_friendly_date_with_YYYY(appl_date, 0, 5, 37)
+
 	IF len(PARE_child_1) = 1 THEN PARE_child_1 = "0" & PARE_child_1
 	IF len(PARE_child_2) = 1 THEN PARE_child_1 = "0" & PARE_child_2
 	IF len(PARE_child_3) = 1 THEN PARE_child_1 = "0" & PARE_child_3
@@ -4683,6 +4686,7 @@ FUNCTION write_panel_to_MAXIS_PARE(appl_date, PARE_child_1, PARE_child_1_relatio
 	EMWritescreen PARE_child_6_relation, 13, 53
 	EMWritescreen PARE_child_6_verif, 13, 71
 	transmit
+	
 end function
 
 '---This function writes using the variables read off of the specialized excel template to the pben panel in MAXIS
@@ -5527,4 +5531,4 @@ If beta_agency = True then
 		  "This script will now stop."
 		stopscript
 	End if
-End if
+End if	
