@@ -661,12 +661,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen ACCT_total, 1, 2, 78
+      EMReadScreen ACCT_total, 2, 2, 78
+	  ACCT_total = trim(ACCT_total)   'deleting space if one digit.
       If ACCT_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_ACCT_to_variable(variable_written_to)
-          EMReadScreen ACCT_panel_current, 1, 2, 73
+          EMReadScreen ACCT_panel_current, 2, 2, 72
+          ACCT_panel_current = trim(ACCT_panel_current)
           If cint(ACCT_panel_current) < cint(ACCT_total) then transmit
         Loop until cint(ACCT_panel_current) = cint(ACCT_total)
       End if
@@ -717,12 +719,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen CARS_total, 1, 2, 78
+      EMReadScreen CARS_total, 2, 2, 78
+	  CARS_total = trim(CARS_total)
       If CARS_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_CARS_to_variable(variable_written_to)
-          EMReadScreen CARS_panel_current, 1, 2, 73
+          EMReadScreen CARS_panel_current, 2, 2, 72
+		  CARS_panel_current = trim(CARS_panel_current)
           If cint(CARS_panel_current) < cint(CARS_total) then transmit
         Loop until cint(CARS_panel_current) = cint(CARS_total)
       End if
@@ -1222,12 +1226,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen OTHR_total, 1, 2, 78
+      EMReadScreen OTHR_total, 2, 2, 78
+	  OTHR_total = trim(OTHR_total)
       If OTHR_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_OTHR_to_variable(variable_written_to)
-          EMReadScreen OTHR_panel_current, 1, 2, 73
+          EMReadScreen OTHR_panel_current, 2, 2, 72
+		  OTHR_panel_current = trim(OTHR_panel_current)
           If cint(OTHR_panel_current) < cint(OTHR_total) then transmit
         Loop until cint(OTHR_panel_current) = cint(OTHR_total)
       End if
@@ -1311,12 +1317,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen REST_total, 1, 2, 78
+      EMReadScreen REST_total, 2, 2, 78
+	  REST_total = trim(REST_total)
       If REST_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_REST_to_variable(variable_written_to)
-          EMReadScreen REST_panel_current, 1, 2, 73
+          EMReadScreen REST_panel_current, 2, 2, 72
+		  REST_panel_current = trim(REST_panel_current)
           If cint(REST_panel_current) < cint(REST_total) then transmit
         Loop until cint(REST_panel_current) = cint(REST_total)
       End if
@@ -1359,12 +1367,14 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
-      EMReadScreen SECU_total, 1, 2, 78
+      EMReadScreen SECU_total, 2, 2, 78
+	  SECU_total = trim(SECU_total)
       If SECU_total <> 0 then
         variable_written_to = variable_written_to & "Member " & HH_member & "- "
         Do
           call add_SECU_to_variable(variable_written_to)
-          EMReadScreen SECU_panel_current, 1, 2, 73
+          EMReadScreen SECU_panel_current, 2, 2, 72
+		  SECU_panel_current = trim(SECU_panel_current)
           If cint(SECU_panel_current) < cint(SECU_total) then transmit
         Loop until cint(SECU_panel_current) = cint(SECU_total)
       End if
@@ -1579,7 +1589,7 @@ Function check_for_MAXIS(end_script)
 End function
 
 
-Function check_for_MMIS(end_script) 
+Function check_for_MMIS(end_script)
 'Sending MMIS back to the beginning screen and checking for a password prompt. If end_script is set to true, the script will end; if set to false, script will continue once password is entered
 	Do
 		transmit
@@ -1587,7 +1597,7 @@ Function check_for_MMIS(end_script)
 		col = 1
 		EMSearch "MMIS", row, col
 		IF row <> 1 then
-			If end_script = True then 
+			If end_script = True then
 				script_end_procedure("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again.")
 			Else
 				warning_box = MsgBox("You do not appear to be in MMIS. You may be passworded out. Please check your MMIS screen and try again, or press ""cancel"" to exit the script.", vbOKCancel)
@@ -1784,6 +1794,25 @@ Function find_variable(opening_string, variable_name, length_of_variable)
   If row <> 0 then EMReadScreen variable_name, length_of_variable, row, col + len(opening_string)
 End function
 
+Function file_selection_system_dialog(file_selected, file_extension_restriction)
+	'Creates a Windows Script Host object
+	Set wShell=CreateObject("WScript.Shell")
+
+	'This loops until the right file extension is selected. If it isn't specified (= ""), it'll always exit here.
+	Do
+		'Creates an object which executes the "select a file" dialog, using a Microsoft HTML application (MSHTA.exe), and some handy-dandy HTML.
+		Set oExec=wShell.Exec("mshta.exe ""about:<input type=file id=FILE ><script>FILE.click();new ActiveXObject('Scripting.FileSystemObject').GetStandardStream(1).WriteLine(FILE.value);close();resizeTo(0,0);</script>""")
+
+		'Creates the file_selected variable from the exit
+		file_selected = oExec.StdOut.ReadLine
+
+		'If no file is selected the script will stop
+		If file_selected = "" then stopscript
+
+		'If the rightmost characters of the file selected don't match what was in the file_extension_restriction argument, it'll tell the user. Otherwise the loop (and function) ends.
+		If right(file_selected, len(file_extension_restriction)) <> file_extension_restriction then MsgBox "You've entered an incorrect file type. The allowable file type is: " & file_extension_restriction & "."
+	Loop until right(file_selected, len(file_extension_restriction)) = file_extension_restriction
+End function
 
 FUNCTION find_MAXIS_worker_number(x_number)
 	EMReadScreen SELF_check, 4, 2, 50		'Does this to check to see if we're on SELF screen
@@ -2051,7 +2080,7 @@ FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the
 END FUNCTION
 
 'Function for checking and changing the footer month to the MAXIS_footer_month & MAXIS_footer_year selected by the user in the inital dialog if necessary
-FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work 
+FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work
 	EMReadScreen SELF_check, 4, 2, 50			'Does this to check to see if we're on SELF screen
 	IF SELF_check = "SELF" THEN
 		EMReadScreen panel_footer_month, 2, 20, 43
@@ -2060,15 +2089,15 @@ FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS fo
 		Call find_variable("Month: ", MAXIS_footer, 5)	'finding footer month and year if not on the SELF screen
 		panel_footer_month = left(MAXIS_footer, 2)
 		panel_footer_year = right(MAXIS_footer, 2)
-		If row <> 0 then 
+		If row <> 0 then
   			panel_footer_month = panel_footer_month		'Establishing variables
 			panel_footer_year =panel_footer_year
 		END IF
 	END IF
 	panel_date = panel_footer_month & panel_footer_year		'creating new variable combining month and year for the date listed on the MAXIS panel
 	dialog_date = MAXIS_footer_month & MAXIS_footer_year	'creating new variable combining the MAXIS_footer_month & MAXIS_footer_year to measure against the panel date
-	IF panel_date <> dialog_date then 						'if dates are not equal 
-		back_to_SELF		
+	IF panel_date <> dialog_date then 						'if dates are not equal
+		back_to_SELF
 		EMWriteScreen MAXIS_footer_month, 20, 43			'goes back to self and enters the date that the user selcted'
 		EMWriteScreen MAXIS_footer_year, 20, 46
 	END IF
@@ -4621,14 +4650,14 @@ Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG
 	EMWriteScreen IMIG_status_LPR_adj_from, 9, 45						'Enters status LPR adj from
 	EMWriteScreen IMIG_nationality, 10, 45								'Enters nationality
 	EMwritescreen IMIG_40_soc_sec, 13, 56								'Enters info about Social Security Credits
-	EMwritescreen IMIG_40_soc_sec_verif, 13, 71	
-	EMwritescreen IMIG_battered_spouse_child, 14, 56					'Enters info about Battered Child/Spouse claims 
-	EMwritescreen IMIG_battered_spouse_child_verif, 14, 71 
+	EMwritescreen IMIG_40_soc_sec_verif, 13, 71
+	EMwritescreen IMIG_battered_spouse_child, 14, 56					'Enters info about Battered Child/Spouse claims
+	EMwritescreen IMIG_battered_spouse_child_verif, 14, 71
 	EMwritescreen IMIG_military_status, 15, 56 							'Enters info about possible military status
-	EMwritescreen IMIG_military_status_verif, 15, 71 
+	EMwritescreen IMIG_military_status_verif, 15, 71
 	EMwritescreen IMIG_hmong_lao_nat_amer, 16, 56 						'Enters status of particular nationalities/identity
 	EMwritescreen IMIG_st_prog_esl_ctzn_coop, 17, 56 					'Enters information about ESL/Citizen cooperation status
-	EMwritescreen IMIG_st_prog_esl_ctzn_coop_verif, 17, 71 
+	EMwritescreen IMIG_st_prog_esl_ctzn_coop_verif, 17, 71
 	EMwritescreen IMIG_fss_esl_skills_training, 18, 56 					'Enters information about ESL Skills course
 	transmit
 	transmit
@@ -5573,6 +5602,9 @@ FUNCTION write_panel_to_MAXIS_UNEA(unea_number, unea_inc_type, unea_inc_verif, u
 		transmit
 		transmit
 	END IF
+	Transmit
+  	EMReadScreen warning_check, 7, 24, 2 'This checks for an error with COLA field being blank
+  	IF warning_check = "WARNING" THEN transmit
 END FUNCTION
 
 FUNCTION write_panel_to_MAXIS_WKEX(program, fed_tax_retro, fed_tax_prosp, fed_tax_verif, state_tax_retro, state_tax_prosp, state_tax_verif, fica_retro, fica_prosp, fica_verif, tran_retro, tran_prosp, tran_verif, tran_imp_rel, meals_retro, meals_prosp, meals_verif, meals_imp_rel, uniforms_retro, uniforms_prosp, uniforms_verif, uniforms_imp_rel, tools_retro, tools_prosp, tools_verif, tools_imp_rel, dues_retro, dues_prosp, dues_verif, dues_imp_rel, othr_retro, othr_prosp, othr_verif, othr_imp_rel, HC_Exp_Fed_Tax, HC_Exp_State_Tax, HC_Exp_FICA, HC_Exp_Tran, HC_Exp_Tran_imp_rel, HC_Exp_Meals, HC_Exp_Meals_Imp_Rel, HC_Exp_Uniforms, HC_Exp_Uniforms_Imp_Rel, HC_Exp_Tools, HC_Exp_Tools_Imp_Rel, HC_Exp_Dues, HC_Exp_Dues_Imp_Rel, HC_Exp_Othr, HC_Exp_Othr_Imp_Rel)
