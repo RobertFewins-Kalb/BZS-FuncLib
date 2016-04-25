@@ -2542,7 +2542,7 @@ function script_end_procedure(closing_message)
         End if
 
 	End if
-	stopscript
+	If disable_StopScript = FALSE or disable_StopScript = "" then stopscript
 end function
 
 function script_end_procedure_wsh(closing_message) 'For use when running a script outside of the BlueZone Script Host
