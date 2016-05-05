@@ -33,6 +33,69 @@ CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, 
 If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
 county_name = ""
 
+'Functions related to global constants-----
+FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1619
+	IF household_size = 2 THEN income_limit = 2191
+	IF household_size = 3 THEN income_limit = 2763
+	IF household_size = 4 THEN income_limit = 3335
+	IF household_size = 5 THEN income_limit = 3907
+	IF household_size = 6 THEN income_limit = 4479
+	IF household_size = 7 THEN income_limit = 5051
+	IF household_size = 8 THEN income_limit = 5623
+	IF household_size > 8 THEN income_limit = 5623 + (572 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_gross(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'Also used for sponsor income
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1276
+	IF household_size = 2 THEN income_limit = 1726
+	IF household_size = 3 THEN income_limit = 2177
+	IF household_size = 4 THEN income_limit = 2628
+	IF household_size = 5 THEN income_limit = 3078
+	IF household_size = 6 THEN income_limit = 3529
+	IF household_size = 7 THEN income_limit = 3980
+	IF household_size = 8 THEN income_limit = 4430
+	IF household_size > 8 THEN income_limit = 4430 + (451 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_net(household_size, income_limit)
+	'See Combined Manual 0020.12
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 981
+	IF household_size = 2 THEN income_limit = 1328
+	IF household_size = 3 THEN income_limit = 1675
+	IF household_size = 4 THEN income_limit = 2021
+	IF household_size = 5 THEN income_limit = 2368
+	IF household_size = 6 THEN income_limit = 2715
+	IF household_size = 7 THEN income_limit = 3061
+	IF household_size = 8 THEN income_limit = 3408
+	IF household_size > 8 THEN income_limit = 3408 + (347 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
 Function add_ACCI_to_variable(ACCI_variable)
