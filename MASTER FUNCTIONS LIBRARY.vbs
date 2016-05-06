@@ -95,6 +95,38 @@ FUNCTION income_test_SNAP_net(household_size, income_limit)
 	END IF
 END FUNCTION
 
+FUNCTION ten_day_cutoff_check(footer_month, footer_year, ten_day_cutoff)
+	'All 10-day cutoff dates are provided in POLI/TEMP TE19.132
+	IF footer_month = "01" AND footer_year = "16" THEN 
+		ten_day_cutoff = #01/21/2016#
+	ELSEIF footer_month = "02" AND footer_year = "16" THEN
+		ten_day_cutoff = #02/18/2016#
+	ELSEIF footer_month = "03" AND footer_year = "16" THEN 
+		ten_day_cutoff = #03/21/2016#
+	ELSEIF footer_month = "04" AND footer_year = "16" THEN 
+		ten_day_cutoff = #04/20/2016#
+	ELSEIF footer_month = "05" AND footer_year = "16" THEN
+		ten_day_cutoff = #05/19/2016#
+	ELSEIF footer_month = "06" AND footer_year = "16" THEN 
+		ten_day_cutoff = #06/20/2016#
+	ELSEIF footer_month = "07" AND footer_year = "16" THEN 
+		ten_day_cutoff = #07/21/2016#
+	ELSEIF footer_month = "08" AND footer_year = "16" THEN 
+		ten_day_cutoff = #08/19/2016#
+	ELSEIF footer_month = "09" AND footer_year = "16" THEN 
+		ten_day_cutoff = #09/20/2016#
+	ELSEIF footer_month = "10" AND footer_year = "16" THEN 
+		ten_day_cutoff = #10/20/2016#
+	ELSEIF footer_month = "11" AND footer_year = "16" THEN 
+		ten_day_cutoff = #11/18/2016#
+	ELSEIF footer_month = "12" AND footer_year = "16" THEN 
+		ten_day_cutoff = #12/21/2016#
+	ELSE
+		MsgBox "You have entered a date (" & footer_month & "/" & footer_year & ") not supported by this function. Please contact a scripts administrator to determine if the script requires updating.", vbInformation + vbSystemModal, "NOTICE"
+	END IF
+END FUNCTION
+
+
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
