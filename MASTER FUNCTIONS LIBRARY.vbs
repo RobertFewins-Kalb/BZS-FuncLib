@@ -2355,6 +2355,49 @@ Function MMIS_RKEY_finder
   EMWaitReady 0, 0
 End function
 
+FUNCTION navigate_to_MAXIS(maxis_mode)
+	attn
+	EMConnect "A"
+	IF maxis_mode = "PRODUCTION" THEN
+		EMReadScreen prod_running, 7, 6, 15
+		IF prod_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen prod_running, 7, 6, 15
+			IF prod_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than S2.")
+			END IF
+		END IF
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMReadScreen inq_running, 7, 7, 15
+		IF inq_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect "B"
+			attn
+			EMReadScreen inq_running, 7, 7, 15
+			IF inq_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than 2.")
+			END IF
+		END IF
+	END IF
+
+	EMConnect (x)
+	IF maxis_mode = "PRODUCTION" THEN
+		EMWriteScreen "1", 2, 15
+		transmit
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMWriteScreen "2", 2, 15
+		transmit
+	END IF
+END FUNCTION
+
 FUNCTION navigate_to_MMIS
 	attn
 	Do
