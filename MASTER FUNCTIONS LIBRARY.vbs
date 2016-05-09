@@ -1572,7 +1572,8 @@ End function
 FUNCTION cancel_confirmation
 	If ButtonPressed = 0 then
 		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
-		If cancel_confirm = vbYes then script_end_procedure("CANCEL BUTTON SELECTED")
+		If cancel_confirm = vbYes then script_end_procedure("CANCEL BUTTON SELECTED")     
+        'script_end_procedure text added for statistical purposes. If script was canceled prior to completion, the statistics will reflect this.
 	End if
 END FUNCTION
 
