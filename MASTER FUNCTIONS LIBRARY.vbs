@@ -2355,6 +2355,100 @@ Function MMIS_RKEY_finder
   EMWaitReady 0, 0
 End function
 
+FUNCTION navigate_to_MMIS
+	attn
+	Do
+		EMReadScreen MAI_check, 3, 1, 33
+		If MAI_check <> "MAI" then EMWaitReady 1, 1
+	Loop until MAI_check = "MAI"
+
+	EMReadScreen mmis_check, 7, 15, 15
+	IF mmis_check = "RUNNING" THEN
+		EMWriteScreen "10", 2, 15
+		transmit
+	ELSE
+		EMConnect"A"
+		attn
+		EMReadScreen mmis_check, 7, 15, 15
+		IF mmis_check = "RUNNING" THEN
+			EMWriteScreen "10", 2, 15
+			transmit
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen mmis_b_check, 7, 15, 15
+			IF mmis_b_check <> "RUNNING" THEN
+				script_end_procedure("You do not appear to have MMIS running. This script will now stop. Please make sure you have an active version of MMIS and re-run the script.")
+			ELSE
+				EMWriteScreen "10", 2, 15
+				transmit
+			END IF
+		END IF
+	END IF
+
+	DO
+		PF6
+		EMReadScreen password_prompt, 38, 2, 23
+		IF password_prompt = "ACF2/CICS PASSWORD VERIFICATION PROMPT" then StopScript
+		EMReadScreen session_start, 18, 1, 7
+	LOOP UNTIL session_start = "SESSION TERMINATED"
+
+	'Getting back in to MMIS and trasmitting past the warning screen (workers should already have accepted the warning when they logged themselves into MMIS the first time, yo.
+	EMWriteScreen "MW00", 1, 2
+	transmit
+	transmit
+
+	'The following will select the correct version of MMIS. First it looks for C302, then EK01, then C402.
+	row = 1
+	col = 1
+	EMSearch ("C3" & right(worker_county_code, 2)), row, col
+	If row <> 0 then
+		If row <> 1 then 'It has to do this in case the worker only has one option (as many LTC and OSA workers don't have the option to decide between MAXIS and MCRE case access). The MMIS screen will show the text, but it's in the first row in these instances.
+			EMWriteScreen "x", row, 4
+			transmit
+		End if
+	Else 'Some staff may only have EK01 (MMIS MCRE). The script will allow workers to use that if applicable.
+		row = 1
+		col = 1
+		EMSearch "EK01", row, col
+		If row <> 0 then
+			If row <> 1 then
+				EMWriteScreen "x", row, 4
+				transmit
+			End if
+		Else 'Some OSAs have C402 (limited access). This will search for that.
+			row = 1
+			col = 1
+			EMSearch ("C4" & right(worker_county_code, 2)), row, col
+			If row <> 0 then
+				If row <> 1 then
+					EMWriteScreen "x", row, 4
+					transmit
+				End if
+			Else 'Some OSAs have EKIQ (limited MCRE access). This will search for that.
+				row = 1
+				col = 1
+				EMSearch "EKIQ", row, col
+				If row <> 0 then
+					If row <> 1 then
+						EMWriteScreen "x", row, 4
+						transmit
+					End if
+				Else
+					script_end_procedure("C4" & right(worker_county_code, 2) & ", C3" & right(worker_county_code, 2) & ", EKIQ, or EK01 not found. Your access to MMIS may be limited. Contact your script Alpha user if you have questions about using this script.")
+				End if
+			End if
+		End if
+	END IF
+
+	'Now it finds the recipient file application feature and selects it.
+	row = 1
+	col = 1
+	EMSearch "RECIPIENT FILE APPLICATION", row, col
+	EMWriteScreen "x", row, col - 3
+	transmit
+END FUNCTION
+
 Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
   EMSendKey "<enter>"
   EMWaitReady 0, 0
