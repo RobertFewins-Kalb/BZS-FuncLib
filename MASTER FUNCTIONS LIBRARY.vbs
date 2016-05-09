@@ -2845,6 +2845,7 @@ END FUNCTION
 function script_end_procedure(closing_message)
 	stop_time = timer
 	If closing_message <> "" AND closing_message <> "CANCEL BUTTON SELECTED" then MsgBox closing_message
+    'Bypasses the closing message of "CANCEL BUTTON SELECTED" in the cancel_confirmation function if being used in scripts where chain-loading is occurring
 	script_run_time = stop_time - start_time
 	If is_county_collecting_stats  = True then
 		'Getting user name
