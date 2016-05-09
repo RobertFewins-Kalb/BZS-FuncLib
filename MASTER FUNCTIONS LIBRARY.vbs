@@ -1572,7 +1572,7 @@ End function
 FUNCTION cancel_confirmation
 	If ButtonPressed = 0 then
 		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
-		If cancel_confirm = vbYes then stopscript
+		If cancel_confirm = vbYes then script_end_procedure("CANCEL BUTTON SELECTED")
 	End if
 END FUNCTION
 
@@ -2845,7 +2845,7 @@ END FUNCTION
 
 function script_end_procedure(closing_message)
 	stop_time = timer
-	If closing_message <> "" then MsgBox closing_message
+	If closing_message <> "" AND closing_message <> "CANCEL BUTTON SELECTED" then MsgBox closing_message
 	script_run_time = stop_time - start_time
 	If is_county_collecting_stats  = True then
 		'Getting user name
