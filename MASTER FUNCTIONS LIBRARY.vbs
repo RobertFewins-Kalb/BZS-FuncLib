@@ -2471,6 +2471,7 @@ function navigation_buttons 'this works by calling the navigation_buttons functi
   If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
   If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
   If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+  If ButtonPressed = WKEX_button then call navigate_to_screen("stat", "WKEX")
 End function
 
 function new_BS_BSI_heading
