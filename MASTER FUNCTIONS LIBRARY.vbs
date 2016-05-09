@@ -2610,7 +2610,6 @@ If ButtonPressed = ABPS_button then call navigate_to_MAXIS_screen("stat", "ABPS"
   If ButtonPressed = TRAN_button then call navigate_to_MAXIS_screen("stat", "TRAN")
   If ButtonPressed = TYPE_button then call navigate_to_MAXIS_screen("stat", "TYPE")
   If ButtonPressed = UNEA_button then call navigate_to_MAXIS_screen("stat", "UNEA")
-  If ButtonPressed = WKEX_button then call navigate_to_MAXIS_screen("stat", "WKEX")
 End function
 
 function new_BS_BSI_heading
