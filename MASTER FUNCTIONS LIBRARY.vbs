@@ -33,7 +33,7 @@ CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, 
 If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
 county_name = ""
 
-'Functions related to global constants-----
+'=========================================================================================================================================================================== FUNCTIONS RELATED TO GLOBAL CONSTANTS
 FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
 	'See Combined Manual 0019.06
 	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
@@ -126,7 +126,26 @@ FUNCTION ten_day_cutoff_check(footer_month, footer_year, ten_day_cutoff)
 	END IF
 END FUNCTION
 
+'=========================================================================================================================================================================== CLASSES USED BY SCRIPTS
+'A class for each script item
+class script
 
+	public script_name             	'The familiar name of the script
+	public file_name               	'The actual file name
+	public description             	'The description of the script
+	public button                  	'A variable to store the actual results of ButtonPressed (used by much of the script functionality)
+    public category               	'The script category (ACTIONS/BULK/etc)
+    public SIR_instructions_URL    	'The instructions URL in SIR
+    public button_plus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the add button.
+	public button_minus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the minus button.
+	public total_times_to_run		'A variable for the total times the script should run
+	public subcategory				'An array of all subcategories a script might exist in, such as "LTC" or "A-F"
+
+	public property get button_size	'This part determines the size of the button dynamically by determining the length of the script name, multiplying that by 3.5, rounding the decimal off, and adding 10 px
+		button_size = round ( len( script_name ) * 3.5 ) + 10
+	end property
+
+end class
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
