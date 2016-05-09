@@ -2356,7 +2356,7 @@ Function MMIS_RKEY_finder
   EMWaitReady 0, 0
 End function
 
-FUNCTION navigate_to_MAXIS(maxis_mode)
+FUNCTION navigate_to_MAXIS(maxis_mode)  'This function is to be used when navigating back to MAXIS from another function in BlueZone (MMIS, PRISM, INFOPAC, etc.)
 	attn
 	EMConnect "A"
 	IF maxis_mode = "PRODUCTION" THEN
@@ -2399,7 +2399,7 @@ FUNCTION navigate_to_MAXIS(maxis_mode)
 	END IF
 END FUNCTION
 
-FUNCTION navigate_to_MMIS
+FUNCTION navigate_to_MMIS   'This function is to be used when navigating to MMIS from another function in BlueZone (MAXIS, PRISM, INFOPAC, etc.)
 	attn
 	Do
 		EMReadScreen MAI_check, 3, 1, 33
