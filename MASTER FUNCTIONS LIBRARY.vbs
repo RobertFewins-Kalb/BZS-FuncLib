@@ -33,6 +33,101 @@ CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, 
 If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
 county_name = ""
 
+'Functions related to global constants-----
+FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1619
+	IF household_size = 2 THEN income_limit = 2191
+	IF household_size = 3 THEN income_limit = 2763
+	IF household_size = 4 THEN income_limit = 3335
+	IF household_size = 5 THEN income_limit = 3907
+	IF household_size = 6 THEN income_limit = 4479
+	IF household_size = 7 THEN income_limit = 5051
+	IF household_size = 8 THEN income_limit = 5623
+	IF household_size > 8 THEN income_limit = 5623 + (572 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_gross(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'Also used for sponsor income
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1276
+	IF household_size = 2 THEN income_limit = 1726
+	IF household_size = 3 THEN income_limit = 2177
+	IF household_size = 4 THEN income_limit = 2628
+	IF household_size = 5 THEN income_limit = 3078
+	IF household_size = 6 THEN income_limit = 3529
+	IF household_size = 7 THEN income_limit = 3980
+	IF household_size = 8 THEN income_limit = 4430
+	IF household_size > 8 THEN income_limit = 4430 + (451 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_net(household_size, income_limit)
+	'See Combined Manual 0020.12
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 981
+	IF household_size = 2 THEN income_limit = 1328
+	IF household_size = 3 THEN income_limit = 1675
+	IF household_size = 4 THEN income_limit = 2021
+	IF household_size = 5 THEN income_limit = 2368
+	IF household_size = 6 THEN income_limit = 2715
+	IF household_size = 7 THEN income_limit = 3061
+	IF household_size = 8 THEN income_limit = 3408
+	IF household_size > 8 THEN income_limit = 3408 + (347 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION ten_day_cutoff_check(footer_month, footer_year, ten_day_cutoff)
+	'All 10-day cutoff dates are provided in POLI/TEMP TE19.132
+	IF footer_month = "01" AND footer_year = "16" THEN 
+		ten_day_cutoff = #01/21/2016#
+	ELSEIF footer_month = "02" AND footer_year = "16" THEN
+		ten_day_cutoff = #02/18/2016#
+	ELSEIF footer_month = "03" AND footer_year = "16" THEN 
+		ten_day_cutoff = #03/21/2016#
+	ELSEIF footer_month = "04" AND footer_year = "16" THEN 
+		ten_day_cutoff = #04/20/2016#
+	ELSEIF footer_month = "05" AND footer_year = "16" THEN
+		ten_day_cutoff = #05/19/2016#
+	ELSEIF footer_month = "06" AND footer_year = "16" THEN 
+		ten_day_cutoff = #06/20/2016#
+	ELSEIF footer_month = "07" AND footer_year = "16" THEN 
+		ten_day_cutoff = #07/21/2016#
+	ELSEIF footer_month = "08" AND footer_year = "16" THEN 
+		ten_day_cutoff = #08/19/2016#
+	ELSEIF footer_month = "09" AND footer_year = "16" THEN 
+		ten_day_cutoff = #09/20/2016#
+	ELSEIF footer_month = "10" AND footer_year = "16" THEN 
+		ten_day_cutoff = #10/20/2016#
+	ELSEIF footer_month = "11" AND footer_year = "16" THEN 
+		ten_day_cutoff = #11/18/2016#
+	ELSEIF footer_month = "12" AND footer_year = "16" THEN 
+		ten_day_cutoff = #12/21/2016#
+	ELSE
+		MsgBox "You have entered a date (" & footer_month & "/" & footer_year & ") not supported by this function. Please contact a scripts administrator to determine if the script requires updating.", vbInformation + vbSystemModal, "NOTICE"
+	END IF
+END FUNCTION
+
+
+
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
 Function add_ACCI_to_variable(ACCI_variable)
@@ -1572,7 +1667,8 @@ End function
 FUNCTION cancel_confirmation
 	If ButtonPressed = 0 then
 		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
-		If cancel_confirm = vbYes then stopscript
+		If cancel_confirm = vbYes then script_end_procedure("CANCEL BUTTON SELECTED")     
+        'script_end_procedure text added for statistical purposes. If script was canceled prior to completion, the statistics will reflect this.
 	End if
 END FUNCTION
 
@@ -2212,60 +2308,61 @@ FUNCTION MAXIS_dialog_navigation
 	End if
 
 	'This part takes care of remaining navigation buttons, designed to go to a single panel.
-	If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
-	If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
-	If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
-	If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
-	If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
-	If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
-	If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
-	If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
-	If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
-	If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
-	If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
-	If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
-	If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
-	If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
-	If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
-	If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
-	If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
-	If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
-	If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
-	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
-	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
-	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
-	If ButtonPressed = ELIG_GRH_button then call navigate_to_screen("elig", "GRH_")
-	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
-	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
-	If ButtonPressed = HCMI_button then call navigate_to_screen("stat", "HCMI")
-	If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
-	If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
-	If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
-	If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
-	If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
-	If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
-	If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
-	If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
-	If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
-	If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
-	If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
-	If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
-	If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
-	If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
-	If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
-	If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
-	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
-	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
-	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
-	If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
-	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
-	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
-	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
-	If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
-	If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
-	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
-	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
-	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+	If ButtonPressed = ABPS_button then call navigate_to_MAXIS_screen("stat", "ABPS")
+	If ButtonPressed = ACCI_button then call navigate_to_MAXIS_screen("stat", "ACCI")
+	If ButtonPressed = ACCT_button then call navigate_to_MAXIS_screen("stat", "ACCT")
+	If ButtonPressed = ADDR_button then call navigate_to_MAXIS_screen("stat", "ADDR")
+	If ButtonPressed = ALTP_button then call navigate_to_MAXIS_screen("stat", "ALTP")
+	If ButtonPressed = AREP_button then call navigate_to_MAXIS_screen("stat", "AREP")
+	If ButtonPressed = BILS_button then call navigate_to_MAXIS_screen("stat", "BILS")
+	If ButtonPressed = BUSI_button then call navigate_to_MAXIS_screen("stat", "BUSI")
+	If ButtonPressed = CARS_button then call navigate_to_MAXIS_screen("stat", "CARS")
+	If ButtonPressed = CASH_button then call navigate_to_MAXIS_screen("stat", "CASH")
+	If ButtonPressed = COEX_button then call navigate_to_MAXIS_screen("stat", "COEX")
+	If ButtonPressed = DCEX_button then call navigate_to_MAXIS_screen("stat", "DCEX")
+	If ButtonPressed = DIET_button then call navigate_to_MAXIS_screen("stat", "DIET")
+	If ButtonPressed = DISA_button then call navigate_to_MAXIS_screen("stat", "DISA")
+	If ButtonPressed = EATS_button then call navigate_to_MAXIS_screen("stat", "EATS")
+	If ButtonPressed = ELIG_DWP_button then call navigate_to_MAXIS_screen("elig", "DWP_")
+	If ButtonPressed = ELIG_FS_button then call navigate_to_MAXIS_screen("elig", "FS__")
+	If ButtonPressed = ELIG_GA_button then call navigate_to_MAXIS_screen("elig", "GA__")
+	If ButtonPressed = ELIG_HC_button then call navigate_to_MAXIS_screen("elig", "HC__")
+	If ButtonPressed = ELIG_MFIP_button then call navigate_to_MAXIS_screen("elig", "MFIP")
+	If ButtonPressed = ELIG_MSA_button then call navigate_to_MAXIS_screen("elig", "MSA_")
+	If ButtonPressed = ELIG_WB_button then call navigate_to_MAXIS_screen("elig", "WB__")
+	If ButtonPressed = ELIG_GRH_button then call navigate_to_MAXIS_screen("elig", "GRH_")
+	If ButtonPressed = FACI_button then call navigate_to_MAXIS_screen("stat", "FACI")
+	If ButtonPressed = FMED_button then call navigate_to_MAXIS_screen("stat", "FMED")
+	If ButtonPressed = HCMI_button then call navigate_to_MAXIS_screen("stat", "HCMI")
+	If ButtonPressed = HCRE_button then call navigate_to_MAXIS_screen("stat", "HCRE")
+	If ButtonPressed = HEST_button then call navigate_to_MAXIS_screen("stat", "HEST")
+	If ButtonPressed = IMIG_button then call navigate_to_MAXIS_screen("stat", "IMIG")
+	If ButtonPressed = INSA_button then call navigate_to_MAXIS_screen("stat", "INSA")
+	If ButtonPressed = JOBS_button then call navigate_to_MAXIS_screen("stat", "JOBS")
+	If ButtonPressed = MEDI_button then call navigate_to_MAXIS_screen("stat", "MEDI")
+	If ButtonPressed = MEMB_button then call navigate_to_MAXIS_screen("stat", "MEMB")
+	If ButtonPressed = MEMI_button then call navigate_to_MAXIS_screen("stat", "MEMI")
+	If ButtonPressed = MONT_button then call navigate_to_MAXIS_screen("stat", "MONT")
+	If ButtonPressed = OTHR_button then call navigate_to_MAXIS_screen("stat", "OTHR")
+	If ButtonPressed = PBEN_button then call navigate_to_MAXIS_screen("stat", "PBEN")
+	If ButtonPressed = PDED_button then call navigate_to_MAXIS_screen("stat", "PDED")
+	If ButtonPressed = PREG_button then call navigate_to_MAXIS_screen("stat", "PREG")
+	If ButtonPressed = PROG_button then call navigate_to_MAXIS_screen("stat", "PROG")
+	If ButtonPressed = RBIC_button then call navigate_to_MAXIS_screen("stat", "RBIC")
+	If ButtonPressed = REST_button then call navigate_to_MAXIS_screen("stat", "REST")
+	If ButtonPressed = REVW_button then call navigate_to_MAXIS_screen("stat", "REVW")
+	If ButtonPressed = SCHL_button then call navigate_to_MAXIS_screen("stat", "SCHL")
+	If ButtonPressed = SECU_button then call navigate_to_MAXIS_screen("stat", "SECU")
+	If ButtonPressed = SPON_button then call navigate_to_MAXIS_screen("stat", "SPON")
+	If ButtonPressed = STIN_button then call navigate_to_MAXIS_screen("stat", "STIN")
+	If ButtonPressed = STEC_button then call navigate_to_MAXIS_screen("stat", "STEC")
+	If ButtonPressed = STWK_button then call navigate_to_MAXIS_screen("stat", "STWK")
+	If ButtonPressed = SHEL_button then call navigate_to_MAXIS_screen("stat", "SHEL")
+	If ButtonPressed = SWKR_button then call navigate_to_MAXIS_screen("stat", "SWKR")
+	If ButtonPressed = TRAN_button then call navigate_to_MAXIS_screen("stat", "TRAN")
+	If ButtonPressed = TYPE_button then call navigate_to_MAXIS_screen("stat", "TYPE")
+	If ButtonPressed = UNEA_button then call navigate_to_MAXIS_screen("stat", "UNEA")
+    If ButtonPressed = WKEX_button then call navigate_to_MAXIS_screen("stat", "WKEX")
 END FUNCTION
 
 FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the footer month/year
@@ -2354,6 +2451,143 @@ Function MMIS_RKEY_finder
   EMSendKey "<enter>"
   EMWaitReady 0, 0
 End function
+
+FUNCTION navigate_to_MAXIS(maxis_mode)  'This function is to be used when navigating back to MAXIS from another function in BlueZone (MMIS, PRISM, INFOPAC, etc.)
+	attn
+	EMConnect "A"
+	IF maxis_mode = "PRODUCTION" THEN
+		EMReadScreen prod_running, 7, 6, 15
+		IF prod_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen prod_running, 7, 6, 15
+			IF prod_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than S2.")
+			END IF
+		END IF
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMReadScreen inq_running, 7, 7, 15
+		IF inq_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect "B"
+			attn
+			EMReadScreen inq_running, 7, 7, 15
+			IF inq_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than 2.")
+			END IF
+		END IF
+	END IF
+
+	EMConnect (x)
+	IF maxis_mode = "PRODUCTION" THEN
+		EMWriteScreen "1", 2, 15
+		transmit
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMWriteScreen "2", 2, 15
+		transmit
+	END IF
+END FUNCTION
+
+FUNCTION navigate_to_MMIS   'This function is to be used when navigating to MMIS from another function in BlueZone (MAXIS, PRISM, INFOPAC, etc.)
+	attn
+	Do
+		EMReadScreen MAI_check, 3, 1, 33
+		If MAI_check <> "MAI" then EMWaitReady 1, 1
+	Loop until MAI_check = "MAI"
+
+	EMReadScreen mmis_check, 7, 15, 15
+	IF mmis_check = "RUNNING" THEN
+		EMWriteScreen "10", 2, 15
+		transmit
+	ELSE
+		EMConnect"A"
+		attn
+		EMReadScreen mmis_check, 7, 15, 15
+		IF mmis_check = "RUNNING" THEN
+			EMWriteScreen "10", 2, 15
+			transmit
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen mmis_b_check, 7, 15, 15
+			IF mmis_b_check <> "RUNNING" THEN
+				script_end_procedure("You do not appear to have MMIS running. This script will now stop. Please make sure you have an active version of MMIS and re-run the script.")
+			ELSE
+				EMWriteScreen "10", 2, 15
+				transmit
+			END IF
+		END IF
+	END IF
+
+	DO
+		PF6
+		EMReadScreen password_prompt, 38, 2, 23
+		IF password_prompt = "ACF2/CICS PASSWORD VERIFICATION PROMPT" then StopScript
+		EMReadScreen session_start, 18, 1, 7
+	LOOP UNTIL session_start = "SESSION TERMINATED"
+
+	'Getting back in to MMIS and trasmitting past the warning screen (workers should already have accepted the warning when they logged themselves into MMIS the first time, yo.
+	EMWriteScreen "MW00", 1, 2
+	transmit
+	transmit
+
+	'The following will select the correct version of MMIS. First it looks for C302, then EK01, then C402.
+	row = 1
+	col = 1
+	EMSearch ("C3" & right(worker_county_code, 2)), row, col
+	If row <> 0 then
+		If row <> 1 then 'It has to do this in case the worker only has one option (as many LTC and OSA workers don't have the option to decide between MAXIS and MCRE case access). The MMIS screen will show the text, but it's in the first row in these instances.
+			EMWriteScreen "x", row, 4
+			transmit
+		End if
+	Else 'Some staff may only have EK01 (MMIS MCRE). The script will allow workers to use that if applicable.
+		row = 1
+		col = 1
+		EMSearch "EK01", row, col
+		If row <> 0 then
+			If row <> 1 then
+				EMWriteScreen "x", row, 4
+				transmit
+			End if
+		Else 'Some OSAs have C402 (limited access). This will search for that.
+			row = 1
+			col = 1
+			EMSearch ("C4" & right(worker_county_code, 2)), row, col
+			If row <> 0 then
+				If row <> 1 then
+					EMWriteScreen "x", row, 4
+					transmit
+				End if
+			Else 'Some OSAs have EKIQ (limited MCRE access). This will search for that.
+				row = 1
+				col = 1
+				EMSearch "EKIQ", row, col
+				If row <> 0 then
+					If row <> 1 then
+						EMWriteScreen "x", row, 4
+						transmit
+					End if
+				Else
+					script_end_procedure("C4" & right(worker_county_code, 2) & ", C3" & right(worker_county_code, 2) & ", EKIQ, or EK01 not found. Your access to MMIS may be limited. Contact your script Alpha user if you have questions about using this script.")
+				End if
+			End if
+		End if
+	END IF
+
+	'Now it finds the recipient file application feature and selects it.
+	row = 1
+	col = 1
+	EMSearch "RECIPIENT FILE APPLICATION", row, col
+	EMWriteScreen "x", row, col - 3
+	transmit
+END FUNCTION
 
 Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
   EMSendKey "<enter>"
@@ -2705,7 +2939,8 @@ END FUNCTION
 
 function script_end_procedure(closing_message)
 	stop_time = timer
-	If closing_message <> "" then MsgBox closing_message
+	If closing_message <> "" AND closing_message <> "CANCEL BUTTON SELECTED" then MsgBox closing_message
+    'Bypasses the closing message of "CANCEL BUTTON SELECTED" in the cancel_confirmation function if being used in scripts where chain-loading is occurring
 	script_run_time = stop_time - start_time
 	If is_county_collecting_stats  = True then
 		'Getting user name
