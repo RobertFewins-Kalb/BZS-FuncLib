@@ -2266,6 +2266,7 @@ FUNCTION MAXIS_dialog_navigation
 	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
 	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
 	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+    If ButtonPressed = WKEX_button then call navigate_to_screen("stat", "WKEX")
 END FUNCTION
 
 FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the footer month/year
