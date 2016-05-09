@@ -30,6 +30,9 @@ CM_yr =         right(                  DatePart("yyyy",        date            
 CM_plus_1_mo =  right("0" &             DatePart("m",           DateAdd("m", 1, date)            ), 2)
 CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, date)            ), 2)
 
+If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
+county_name = ""
+
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
 Function add_ACCI_to_variable(ACCI_variable)
@@ -1844,6 +1847,205 @@ Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_ca
 	phrase_to_split = output_phrase																'making the phrase_to_split equal to the output, so that it can be used by the rest of the script.
 End function
 
+Function get_county_code		'Determines county_name from worker_county_code, and asks for it if it's blank
+	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
+		worker_county_code = "PWVTS"
+	Else
+		If worker_county_code = "MULTICOUNTY" or worker_county_code = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
+			Do
+				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
+				If two_digit_county_code_variable = "" then stopscript
+				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
+			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True
+			worker_county_code = "x1" & two_digit_county_code_variable
+			If two_digit_county_code_variable = "91" then worker_county_code = "PW"	'For DHS folks without proxy
+		End If
+	End if
+    
+    'Determining county name
+    if worker_county_code = "x101" then
+        county_name = "Aitkin County"
+    elseif worker_county_code = "x102" then
+        county_name = "Anoka County"
+    elseif worker_county_code = "x103" then
+        county_name = "Becker County"
+    elseif worker_county_code = "x104" then
+        county_name = "Beltrami County"
+    elseif worker_county_code = "x105" then
+        county_name = "Benton County"
+    elseif worker_county_code = "x106" then
+        county_name = "Big Stone County"
+    elseif worker_county_code = "x107" then
+        county_name = "Blue Earth County"
+    elseif worker_county_code = "x108" then
+        county_name = "Brown County"
+    elseif worker_county_code = "x109" then
+        county_name = "Carlton County"
+    elseif worker_county_code = "x110" then
+        county_name = "Carver County"
+    elseif worker_county_code = "x111" then
+        county_name = "Cass County"
+    elseif worker_county_code = "x112" then
+        county_name = "Chippewa County"
+    elseif worker_county_code = "x113" then
+        county_name = "Chisago County"
+    elseif worker_county_code = "x114" then
+        county_name = "Clay County"
+    elseif worker_county_code = "x115" then
+        county_name = "Clearwater County"
+    elseif worker_county_code = "x116" then
+        county_name = "Cook County"
+    elseif worker_county_code = "x117" then
+        county_name = "Cottonwood County"
+    elseif worker_county_code = "x118" then
+        county_name = "Crow Wing County"
+    elseif worker_county_code = "x119" then
+        county_name = "Dakota County"
+    elseif worker_county_code = "x120" then
+        county_name = "Dodge County"
+    elseif worker_county_code = "x121" then
+        county_name = "Douglas County"
+    elseif worker_county_code = "x122" then
+        county_name = "Faribault County"
+    elseif worker_county_code = "x123" then
+        county_name = "Fillmore County"
+    elseif worker_county_code = "x124" then
+        county_name = "Freeborn County"
+    elseif worker_county_code = "x125" then
+        county_name = "Goodhue County"
+    elseif worker_county_code = "x126" then
+        county_name = "Grant County"
+    elseif worker_county_code = "x127" then
+        county_name = "Hennepin County"
+    elseif worker_county_code = "x128" then
+        county_name = "Houston County"
+    elseif worker_county_code = "x129" then
+        county_name = "Hubbard County"
+    elseif worker_county_code = "x130" then
+        county_name = "Isanti County"
+    elseif worker_county_code = "x131" then
+        county_name = "Itasca County"
+    elseif worker_county_code = "x132" then
+        county_name = "Jackson County"
+    elseif worker_county_code = "x133" then
+        county_name = "Kanabec County"
+    elseif worker_county_code = "x134" then
+        county_name = "Kandiyohi County"
+    elseif worker_county_code = "x135" then
+        county_name = "Kittson County"
+    elseif worker_county_code = "x136" then
+        county_name = "Koochiching County"
+    elseif worker_county_code = "x137" then
+        county_name = "Lac Qui Parle County"
+    elseif worker_county_code = "x138" then
+        county_name = "Lake County"
+    elseif worker_county_code = "x139" then
+        county_name = "Lake of the Woods County"
+    elseif worker_county_code = "x140" then
+        county_name = "LeSueur County"
+    elseif worker_county_code = "x141" then
+        county_name = "Lincoln County"
+    elseif worker_county_code = "x142" then
+        county_name = "Lyon County"
+    elseif worker_county_code = "x143" then
+        county_name = "Mcleod County"
+    elseif worker_county_code = "x144" then
+        county_name = "Mahnomen County"
+    elseif worker_county_code = "x145" then
+        county_name = "Marshall County"
+    elseif worker_county_code = "x146" then
+        county_name = "Martin County"
+    elseif worker_county_code = "x147" then
+        county_name = "Meeker County"
+    elseif worker_county_code = "x148" then
+        county_name = "Mille Lacs County"
+    elseif worker_county_code = "x149" then
+        county_name = "Morrison County"
+    elseif worker_county_code = "x150" then
+        county_name = "Mower County"
+    elseif worker_county_code = "x151" then
+        county_name = "Murray County"
+    elseif worker_county_code = "x152" then
+        county_name = "Nicollet County"
+    elseif worker_county_code = "x153" then
+        county_name = "Nobles County"
+    elseif worker_county_code = "x154" then
+        county_name = "Norman County"
+    elseif worker_county_code = "x155" then
+        county_name = "Olmsted County"
+    elseif worker_county_code = "x156" then
+        county_name = "Otter Tail County"
+    elseif worker_county_code = "x157" then
+        county_name = "Pennington County"
+    elseif worker_county_code = "x158" then
+        county_name = "Pine County"
+    elseif worker_county_code = "x159" then
+        county_name = "Pipestone County"
+    elseif worker_county_code = "x160" then
+        county_name = "Polk County"
+    elseif worker_county_code = "x161" then
+        county_name = "Pope County"
+    elseif worker_county_code = "x162" then
+        county_name = "Ramsey County"
+    elseif worker_county_code = "x163" then
+        county_name = "Red Lake County"
+    elseif worker_county_code = "x164" then
+        county_name = "Redwood County"
+    elseif worker_county_code = "x165" then
+        county_name = "Renville County"
+    elseif worker_county_code = "x166" then
+        county_name = "Rice County"
+    elseif worker_county_code = "x167" then
+        county_name = "Rock County"
+    elseif worker_county_code = "x168" then
+        county_name = "Roseau County"
+    elseif worker_county_code = "x169" then
+        county_name = "St. Louis County"
+    elseif worker_county_code = "x170" then
+        county_name = "Scott County"
+    elseif worker_county_code = "x171" then
+        county_name = "Sherburne County"
+    elseif worker_county_code = "x172" then
+        county_name = "Sibley County"
+    elseif worker_county_code = "x173" then
+        county_name = "Stearns County"
+    elseif worker_county_code = "x174" then
+        county_name = "Steele County"
+    elseif worker_county_code = "x175" then
+        county_name = "Stevens County"
+    elseif worker_county_code = "x176" then
+        county_name = "Swift County"
+    elseif worker_county_code = "x177" then
+        county_name = "Todd County"
+    elseif worker_county_code = "x178" then
+        county_name = "Traverse County"
+    elseif worker_county_code = "x179" then
+        county_name = "Wabasha County"
+    elseif worker_county_code = "x180" then
+        county_name = "Wadena County"
+    elseif worker_county_code = "x181" then
+        county_name = "Waseca County"
+    elseif worker_county_code = "x182" then
+        county_name = "Washington County"
+    elseif worker_county_code = "x183" then
+        county_name = "Watonwan County"
+    elseif worker_county_code = "x184" then
+        county_name = "Wilkin County"
+    elseif worker_county_code = "x185" then
+        county_name = "Winona County"
+    elseif worker_county_code = "x186" then
+        county_name = "Wright County"
+    elseif worker_county_code = "x187" then
+        county_name = "Yellow Medicine County"
+    elseif worker_county_code = "x188" then
+        county_name = "Mille Lacs Band"
+    elseif worker_county_code = "x192" then
+        county_name = "White Earth Nation"
+    elseif worker_county_code = "PWVTS" then 
+    	county_name = "Pine Tech"
+    end if
+End function
+
 Function get_to_MMIS_session_begin
   Do
     EMSendkey "<PF6>"
@@ -2542,7 +2744,7 @@ function script_end_procedure(closing_message)
         End if
 
 	End if
-	stopscript
+	If disable_StopScript = FALSE or disable_StopScript = "" then stopscript
 end function
 
 function script_end_procedure_wsh(closing_message) 'For use when running a script outside of the BlueZone Script Host
@@ -2777,204 +2979,6 @@ function transmit
   EMSendKey "<enter>"
   EMWaitReady 0, 0
 end function
-
-Function worker_county_code_determination(worker_county_code_variable, two_digit_county_code_variable)		'Determines worker_county_code and two_digit_county_code for multi-county agencies and DHS staff
-	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
-		worker_county_code_variable = "PWVTS"
-		county_name = "Pine Tech"
-	Else
-		If worker_county_code_variable = "MULTICOUNTY" or worker_county_code_variable = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
-			Do
-				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
-				If two_digit_county_code_variable = "" then stopscript
-				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
-			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True
-			worker_county_code_variable = "x1" & two_digit_county_code_variable
-			If two_digit_county_code_variable = "91" then worker_county_code_variable = "PW"	'For DHS folks without proxy
-
-			'Determining county name
-			if worker_county_code_variable = "x101" then
-				county_name = "Aitkin County"
-			elseif worker_county_code_variable = "x102" then
-				county_name = "Anoka County"
-			elseif worker_county_code_variable = "x103" then
-				county_name = "Becker County"
-			elseif worker_county_code_variable = "x104" then
-				county_name = "Beltrami County"
-			elseif worker_county_code_variable = "x105" then
-				county_name = "Benton County"
-			elseif worker_county_code_variable = "x106" then
-				county_name = "Big Stone County"
-			elseif worker_county_code_variable = "x107" then
-				county_name = "Blue Earth County"
-			elseif worker_county_code_variable = "x108" then
-				county_name = "Brown County"
-			elseif worker_county_code_variable = "x109" then
-				county_name = "Carlton County"
-			elseif worker_county_code_variable = "x110" then
-				county_name = "Carver County"
-			elseif worker_county_code_variable = "x111" then
-				county_name = "Cass County"
-			elseif worker_county_code_variable = "x112" then
-				county_name = "Chippewa County"
-			elseif worker_county_code_variable = "x113" then
-				county_name = "Chisago County"
-			elseif worker_county_code_variable = "x114" then
-				county_name = "Clay County"
-			elseif worker_county_code_variable = "x115" then
-				county_name = "Clearwater County"
-			elseif worker_county_code_variable = "x116" then
-				county_name = "Cook County"
-			elseif worker_county_code_variable = "x117" then
-				county_name = "Cottonwood County"
-			elseif worker_county_code_variable = "x118" then
-				county_name = "Crow Wing County"
-			elseif worker_county_code_variable = "x119" then
-				county_name = "Dakota County"
-			elseif worker_county_code_variable = "x120" then
-				county_name = "Dodge County"
-			elseif worker_county_code_variable = "x121" then
-				county_name = "Douglas County"
-			elseif worker_county_code_variable = "x122" then
-				county_name = "Faribault County"
-			elseif worker_county_code_variable = "x123" then
-				county_name = "Fillmore County"
-			elseif worker_county_code_variable = "x124" then
-				county_name = "Freeborn County"
-			elseif worker_county_code_variable = "x125" then
-				county_name = "Goodhue County"
-			elseif worker_county_code_variable = "x126" then
-				county_name = "Grant County"
-			elseif worker_county_code_variable = "x127" then
-				county_name = "Hennepin County"
-			elseif worker_county_code_variable = "x128" then
-				county_name = "Houston County"
-			elseif worker_county_code_variable = "x129" then
-				county_name = "Hubbard County"
-			elseif worker_county_code_variable = "x130" then
-				county_name = "Isanti County"
-			elseif worker_county_code_variable = "x131" then
-				county_name = "Itasca County"
-			elseif worker_county_code_variable = "x132" then
-				county_name = "Jackson County"
-			elseif worker_county_code_variable = "x133" then
-				county_name = "Kanabec County"
-			elseif worker_county_code_variable = "x134" then
-				county_name = "Kandiyohi County"
-			elseif worker_county_code_variable = "x135" then
-				county_name = "Kittson County"
-			elseif worker_county_code_variable = "x136" then
-				county_name = "Koochiching County"
-			elseif worker_county_code_variable = "x137" then
-				county_name = "Lac Qui Parle County"
-			elseif worker_county_code_variable = "x138" then
-				county_name = "Lake County"
-			elseif worker_county_code_variable = "x139" then
-				county_name = "Lake of the Woods County"
-			elseif worker_county_code_variable = "x140" then
-				county_name = "LeSueur County"
-			elseif worker_county_code_variable = "x141" then
-				county_name = "Lincoln County"
-			elseif worker_county_code_variable = "x142" then
-				county_name = "Lyon County"
-			elseif worker_county_code_variable = "x143" then
-				county_name = "Mcleod County"
-			elseif worker_county_code_variable = "x144" then
-				county_name = "Mahnomen County"
-			elseif worker_county_code_variable = "x145" then
-				county_name = "Marshall County"
-			elseif worker_county_code_variable = "x146" then
-				county_name = "Martin County"
-			elseif worker_county_code_variable = "x147" then
-				county_name = "Meeker County"
-			elseif worker_county_code_variable = "x148" then
-				county_name = "Mille Lacs County"
-			elseif worker_county_code_variable = "x149" then
-				county_name = "Morrison County"
-			elseif worker_county_code_variable = "x150" then
-				county_name = "Mower County"
-			elseif worker_county_code_variable = "x151" then
-				county_name = "Murray County"
-			elseif worker_county_code_variable = "x152" then
-				county_name = "Nicollet County"
-			elseif worker_county_code_variable = "x153" then
-				county_name = "Nobles County"
-			elseif worker_county_code_variable = "x154" then
-				county_name = "Norman County"
-			elseif worker_county_code_variable = "x155" then
-				county_name = "Olmsted County"
-			elseif worker_county_code_variable = "x156" then
-				county_name = "Otter Tail County"
-			elseif worker_county_code_variable = "x157" then
-				county_name = "Pennington County"
-			elseif worker_county_code_variable = "x158" then
-				county_name = "Pine County"
-			elseif worker_county_code_variable = "x159" then
-				county_name = "Pipestone County"
-			elseif worker_county_code_variable = "x160" then
-				county_name = "Polk County"
-			elseif worker_county_code_variable = "x161" then
-				county_name = "Pope County"
-			elseif worker_county_code_variable = "x162" then
-				county_name = "Ramsey County"
-			elseif worker_county_code_variable = "x163" then
-				county_name = "Red Lake County"
-			elseif worker_county_code_variable = "x164" then
-				county_name = "Redwood County"
-			elseif worker_county_code_variable = "x165" then
-				county_name = "Renville County"
-			elseif worker_county_code_variable = "x166" then
-				county_name = "Rice County"
-			elseif worker_county_code_variable = "x167" then
-				county_name = "Rock County"
-			elseif worker_county_code_variable = "x168" then
-				county_name = "Roseau County"
-			elseif worker_county_code_variable = "x169" then
-				county_name = "St. Louis County"
-			elseif worker_county_code_variable = "x170" then
-				county_name = "Scott County"
-			elseif worker_county_code_variable = "x171" then
-				county_name = "Sherburne County"
-			elseif worker_county_code_variable = "x172" then
-				county_name = "Sibley County"
-			elseif worker_county_code_variable = "x173" then
-				county_name = "Stearns County"
-			elseif worker_county_code_variable = "x174" then
-				county_name = "Steele County"
-			elseif worker_county_code_variable = "x175" then
-				county_name = "Stevens County"
-			elseif worker_county_code_variable = "x176" then
-				county_name = "Swift County"
-			elseif worker_county_code_variable = "x177" then
-				county_name = "Todd County"
-			elseif worker_county_code_variable = "x178" then
-				county_name = "Traverse County"
-			elseif worker_county_code_variable = "x179" then
-				county_name = "Wabasha County"
-			elseif worker_county_code_variable = "x180" then
-				county_name = "Wadena County"
-			elseif worker_county_code_variable = "x181" then
-				county_name = "Waseca County"
-			elseif worker_county_code_variable = "x182" then
-				county_name = "Washington County"
-			elseif worker_county_code_variable = "x183" then
-				county_name = "Watonwan County"
-			elseif worker_county_code_variable = "x184" then
-				county_name = "Wilkin County"
-			elseif worker_county_code_variable = "x185" then
-				county_name = "Winona County"
-			elseif worker_county_code_variable = "x186" then
-				county_name = "Wright County"
-			elseif worker_county_code_variable = "x187" then
-				county_name = "Yellow Medicine County"
-			elseif worker_county_code_variable = "x188" then
-				county_name = "Mille Lacs Band"
-			elseif worker_county_code_variable = "x192" then
-				county_name = "White Earth Nation"
-			end if
-		End If
-	End if
-End function
 
 Function write_bullet_and_variable_in_CASE_NOTE(bullet, variable)
 	If trim(variable) <> "" then
@@ -5706,6 +5710,12 @@ FUNCTION write_panel_to_MAXIS_WREG(wreg_fs_pwe, wreg_fset_status, wreg_defer_fs,
 
 	transmit
 END FUNCTION
+
+
+'Depreciated 04/25/2016
+FUNCTION worker_county_code_determination(x, y)
+    get_county_code
+End function
 
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
 	call write_variable_in_TIKL(variable)
