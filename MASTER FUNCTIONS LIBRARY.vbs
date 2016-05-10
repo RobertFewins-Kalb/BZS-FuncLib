@@ -2631,7 +2631,7 @@ Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
       current_case_number = replace(current_case_number, "_", "")
       current_case_number = trim(current_case_number)
     End if
-    If current_case_number = case_number and MAXIS_function = ucase(function_to_go_to) and STAT_note_check <> "NOTE" then
+    If current_case_number = MAXIS_case_number and MAXIS_function = ucase(function_to_go_to) and STAT_note_check <> "NOTE" then
       row = 1
       col = 1
       EMSearch "Command: ", row, col
@@ -2646,7 +2646,7 @@ Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
       Loop until SELF_check = "SELF"
       EMWriteScreen function_to_go_to, 16, 43
       EMWriteScreen "________", 18, 43
-      EMWriteScreen case_number, 18, 43
+      EMWriteScreen MAXIS_case_number, 18, 43
       EMWriteScreen footer_month, 20, 43
       EMWriteScreen footer_year, 20, 46
       EMWriteScreen command_to_go_to, 21, 70
