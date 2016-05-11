@@ -1602,11 +1602,9 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   Elseif panel_read_from = "WREG" then '---------------------------------------------------------------------------------------------------WREG
 	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
-      EMWriteScreen "01", 20, 79
       transmit
     EMReadScreen wreg_total, 1, 2, 78
-    EMReadScreen snap_case_yn, 1, 6, 50
-    IF wreg_total <> "0" and snap_case_yn = "Y" THEN
+    IF wreg_total <> "0" THEN
 	EmWriteScreen "x", 13, 57
 	transmit
 	 bene_mo_col = (15 + (4*cint(footer_month)))
