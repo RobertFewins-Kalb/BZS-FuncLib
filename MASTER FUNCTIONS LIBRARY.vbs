@@ -1613,17 +1613,54 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
        second_abawd_period = 0
  	 month_count = 0
  	   DO
-  		  EMReadScreen is_counted_month, 1, bene_yr_row, bene_mo_col
-  		    IF is_counted_month = "X" or is_counted_month = "M" THEN abawd_counted_months = abawd_counted_months + 1
-		    IF is_counted_month = "Y" or is_counted_month = "N" THEN second_abawd_period = second_abawd_period + 1
-   		  bene_mo_col = bene_mo_col - 4
-    		    IF bene_mo_col = 15 THEN
+	   		'establishing variables for specific ABAWD counted month dates
+	 		If bene_mo_col = "19" then counted_date_month = "01"
+	 		If bene_mo_col = "23" then counted_date_month = "02"
+	 		If bene_mo_col = "27" then counted_date_month = "03"
+	 		If bene_mo_col = "31" then counted_date_month = "04"
+	 		If bene_mo_col = "35" then counted_date_month = "05"
+	 		If bene_mo_col = "39" then counted_date_month = "06"
+	 		If bene_mo_col = "43" then counted_date_month = "07"
+	 		If bene_mo_col = "47" then counted_date_month = "08"
+	 		If bene_mo_col = "51" then counted_date_month = "09"
+	 		If bene_mo_col = "55" then counted_date_month = "10"
+	 		If bene_mo_col = "59" then counted_date_month = "11"
+	 		If bene_mo_col = "63" then counted_date_month = "12"
+	 		'reading to see if a month is counted month or not	
+  		  	EMReadScreen is_counted_month, 1, bene_yr_row, bene_mo_col
+			'counting and checking for counted ABAWD months
+			IF is_counted_month = "X" or is_counted_month = "M" THEN
+				EMReadScreen counted_date_year, 2, bene_yr_row, 14			'reading counted year date
+				abawd_counted_months_string = counted_date_month & "/" & counted_date_year
+				abawd_info_list = abawd_info_list & ", " & abawd_counted_months_string			'adding variable to list to add to array
+				abawd_counted_months = abawd_counted_months + 1				'adding counted months
+			END IF
+			
+			'declaring & splitting the abawd months array
+			If left(abawd_info_list, 1) = "," then abawd_info_list = right(abawd_info_list, len(abawd_info_list) - 1)
+			abawd_months_array = Split(abawd_info_list, ",")
+			
+			'counting and checking for second set of ABAWD months
+			IF is_counted_month = "Y" or is_counted_month = "N" THEN
+				EMReadScreen counted_date_year, 2, bene_yr_row, 14			'reading counted year date
+				second_abawd_period = second_abawd_period + 1				'adding counted months
+				second_counted_months_string = counted_date_month & "/" & counted_date_year			'creating new variable for array
+				second_set_info_list = second_set_info_list & ", " & second_counted_months_string	'adding variable to list to add to array
+			END IF
+
+			'declaring & splitting the second set of abawd months array
+			If left(second_set_info_list, 1) = "," then second_set_info_list = right(second_set_info_list, len(second_set_info_list) - 1)
+			second_months_array = Split(second_set_info_list,",")
+
+			bene_mo_col = bene_mo_col - 4
+    		IF bene_mo_col = 15 THEN
         		bene_yr_row = bene_yr_row - 1
    	     		bene_mo_col = 63
    	   	    END IF
-    		  month_count = month_count + 1
+    		month_count = month_count + 1
   	   LOOP until month_count = 36
-  	PF3
+  		PF3
+		
 	EmreadScreen read_WREG_status, 2, 8, 50
 	If read_WREG_status = "03" THEN  WREG_status = "WREG = incap"
 	If read_WREG_status = "04" THEN  WREG_status = "WREG = resp for incap HH memb"
@@ -1659,7 +1696,8 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 	If read_abawd_status = "07" THEN  abawd_status = "ABAWD = work exp participant."
 	If read_abawd_status = "08" THEN  abawd_status = "ABAWD = othr E & T service."
 	If read_abawd_status = "09" THEN  abawd_status = "ABAWD = reside in waiver area."
-	If read_abawd_status = "10" THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
+	If read_abawd_status = "10" THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo. List of counted ABAWD months: " & abawd_info_list & ". Second set of ABAWD months used: " & second_set_info_list
+	If read_abawd_status = "11" THEN  abawd_status = "ABAWD = using 2nd set of ABAWD months, months used are: " & second_set_info_list
 	If read_abawd_status = "11" THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
 	If read_abawd_status = "12" THEN  abawd_status = "ABAWD = RCA or GA recip."
 	If read_abawd_status = "13" THEN  abawd_status = "ABAWD = ABAWD extension."
