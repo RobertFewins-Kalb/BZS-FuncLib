@@ -442,7 +442,12 @@ Function add_JOBS_to_variable(variable_name_for_JOBS)
 	prospective_JOBS_amt = trim(prospective_JOBS_amt)
 '  Reads the information about health care off of HC Income Estimator
     EMReadScreen pay_frequency, 1, 18, 35
-    EMWriteScreen "x", 19, 54
+	EMReadScreen HC_income_est_check, 3, 19, 63 'reading to find the HC income estimator is moving 6/1/16, to account for if it only affects future months we are reading to find the HC inc EST
+	IF HC_income_est_check = "Est" Then 'this is the old position
+		EMWriteScreen "x", 19, 54
+	ELSE								'this is the new position
+		EMWriteScreen "x", 19, 48
+	END IF
     transmit
     EMReadScreen HC_JOBS_amt, 8, 11, 63
     HC_JOBS_amt = trim(HC_JOBS_amt)
@@ -5082,7 +5087,12 @@ FUNCTION write_panel_to_MAXIS_JOBS(jobs_number, jobs_inc_type, jobs_inc_verif, j
 
 	'=====determines if the benefit month is current month + 1 and dumps information into the HC income estimator
 	IF (bene_month * 1) = (datepart("M", DATE) + 1) THEN		'<===== "bene_month * 1" is needed to convert bene_month from a string to numeric.
-		EMWriteScreen "X", 19, 54
+		EMReadScreen HC_income_est_check, 3, 19, 63 'reading to find the HC income estimator is moving 6/1/16, to account for if it only affects future months we are reading to find the HC inc EST
+		IF HC_income_est_check = "Est" Then 'this is the old position
+			EMWriteScreen "x", 19, 54
+		ELSE								'this is the new position
+			EMWriteScreen "x", 19, 48
+		END IF
 		transmit
 
 		DO
