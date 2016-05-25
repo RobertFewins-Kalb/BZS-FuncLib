@@ -23,12 +23,133 @@ time_array_15_min = array("7:00 AM", "7:15 AM", "7:30 AM", "7:45 AM", "8:00 AM",
 time_array_30_min = array("7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM")
 
 'Determines CM and CM+1 month and year using the two rightmost chars of both the month and year. Adds a "0" to all months, which will only pull over if it's a single-digit-month
-Dim CM_mo, CM_yr, CM_plus_1_mo, CM_plus_1_yr
+Dim CM_mo, CM_yr, CM_plus_1_mo, CM_plus_1_yr, CM_plus_2_mo, CM_plus_2_yr
 'var equals...  the right part of...    the specific part...    of either today or next month... just the right 2 chars!
 CM_mo =         right("0" &             DatePart("m",           date                             ), 2)
 CM_yr =         right(                  DatePart("yyyy",        date                             ), 2)
+
 CM_plus_1_mo =  right("0" &             DatePart("m",           DateAdd("m", 1, date)            ), 2)
 CM_plus_1_yr =  right(                  DatePart("yyyy",        DateAdd("m", 1, date)            ), 2)
+
+CM_plus_2_mo =  right("0" &             DatePart("m",           DateAdd("m", 2, date)            ), 2)
+CM_plus_2_yr =  right(                  DatePart("yyyy",        DateAdd("m", 2, date)            ), 2)
+
+If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
+county_name = ""
+
+'=========================================================================================================================================================================== FUNCTIONS RELATED TO GLOBAL CONSTANTS
+FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1619
+	IF household_size = 2 THEN income_limit = 2191
+	IF household_size = 3 THEN income_limit = 2763
+	IF household_size = 4 THEN income_limit = 3335
+	IF household_size = 5 THEN income_limit = 3907
+	IF household_size = 6 THEN income_limit = 4479
+	IF household_size = 7 THEN income_limit = 5051
+	IF household_size = 8 THEN income_limit = 5623
+	IF household_size > 8 THEN income_limit = 5623 + (572 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_gross(household_size, income_limit)
+	'See Combined Manual 0019.06
+	'Also used for sponsor income
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 1276
+	IF household_size = 2 THEN income_limit = 1726
+	IF household_size = 3 THEN income_limit = 2177
+	IF household_size = 4 THEN income_limit = 2628
+	IF household_size = 5 THEN income_limit = 3078
+	IF household_size = 6 THEN income_limit = 3529
+	IF household_size = 7 THEN income_limit = 3980
+	IF household_size = 8 THEN income_limit = 4430
+	IF household_size > 8 THEN income_limit = 4430 + (451 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION income_test_SNAP_net(household_size, income_limit)
+	'See Combined Manual 0020.12
+	'When using this function, you can pass (ubound(hh_array) + 1) for household_size
+	IF household_size = 1 THEN income_limit = 981
+	IF household_size = 2 THEN income_limit = 1328
+	IF household_size = 3 THEN income_limit = 1675
+	IF household_size = 4 THEN income_limit = 2021
+	IF household_size = 5 THEN income_limit = 2368
+	IF household_size = 6 THEN income_limit = 2715
+	IF household_size = 7 THEN income_limit = 3061
+	IF household_size = 8 THEN income_limit = 3408
+	IF household_size > 8 THEN income_limit = 3408 + (347 * (household_size- 8))
+
+	valid_through_date = #10/01/2016#
+	IF DateDiff("D", date, valid_through_date) <= 0 THEN 
+		out_of_date_warning = MsgBox ("This script appears to be using out of date income limits. Please contact a scripts administrator to have this updated." & vbNewLine & vbNewLine & "Press OK to continue the script. Press CANCEL to stop the script.", vbOKCancel + vbCritical + vbSystemModal, "NOTICE!!!")
+		IF out_of_date_warning = vbCancel THEN script_end_procedure("")
+	END IF
+END FUNCTION
+
+FUNCTION ten_day_cutoff_check(MAXIS_footer_month, MAXIS_footer_year, ten_day_cutoff)
+	'All 10-day cutoff dates are provided in POLI/TEMP TE19.132
+	IF MAXIS_footer_month = "01" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #01/21/2016#
+	ELSEIF MAXIS_footer_month = "02" AND MAXIS_footer_year = "16" THEN
+		ten_day_cutoff = #02/18/2016#
+	ELSEIF MAXIS_footer_month = "03" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #03/21/2016#
+	ELSEIF MAXIS_footer_month = "04" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #04/20/2016#
+	ELSEIF MAXIS_footer_month = "05" AND MAXIS_footer_year = "16" THEN
+		ten_day_cutoff = #05/19/2016#
+	ELSEIF MAXIS_footer_month = "06" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #06/20/2016#
+	ELSEIF MAXIS_footer_month = "07" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #07/21/2016#
+	ELSEIF MAXIS_footer_month = "08" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #08/19/2016#
+	ELSEIF MAXIS_footer_month = "09" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #09/20/2016#
+	ELSEIF MAXIS_footer_month = "10" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #10/20/2016#
+	ELSEIF MAXIS_footer_month = "11" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #11/18/2016#
+	ELSEIF MAXIS_footer_month = "12" AND MAXIS_footer_year = "16" THEN 
+		ten_day_cutoff = #12/21/2016#
+	ELSE
+		MsgBox "You have entered a date (" & MAXIS_footer_month & "/" & MAXIS_footer_year & ") not supported by this function. Please contact a scripts administrator to determine if the script requires updating.", vbInformation + vbSystemModal, "NOTICE"
+	END IF
+END FUNCTION
+
+'=========================================================================================================================================================================== CLASSES USED BY SCRIPTS
+'A class for each script item
+class script
+
+	public script_name             	'The familiar name of the script
+	public file_name               	'The actual file name
+	public description             	'The description of the script
+	public button                  	'A variable to store the actual results of ButtonPressed (used by much of the script functionality)
+    public category               	'The script category (ACTIONS/BULK/etc)
+    public SIR_instructions_URL    	'The instructions URL in SIR
+    public button_plus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the add button.
+	public button_minus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the minus button.
+	public total_times_to_run		'A variable for the total times the script should run
+	public subcategory				'An array of all subcategories a script might exist in, such as "LTC" or "A-F"
+
+	public property get button_size	'This part determines the size of the button dynamically by determining the length of the script name, multiplying that by 3.5, rounding the decimal off, and adding 10 px
+		button_size = round ( len( script_name ) * 3.5 ) + 10
+	end property
+
+end class
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
@@ -321,7 +442,12 @@ Function add_JOBS_to_variable(variable_name_for_JOBS)
 	prospective_JOBS_amt = trim(prospective_JOBS_amt)
 '  Reads the information about health care off of HC Income Estimator
     EMReadScreen pay_frequency, 1, 18, 35
-    EMWriteScreen "x", 19, 54
+	EMReadScreen HC_income_est_check, 3, 19, 63 'reading to find the HC income estimator is moving 6/1/16, to account for if it only affects future months we are reading to find the HC inc EST
+	IF HC_income_est_check = "Est" Then 'this is the old position
+		EMWriteScreen "x", 19, 54
+	ELSE								'this is the new position
+		EMWriteScreen "x", 19, 48
+	END IF
     transmit
     EMReadScreen HC_JOBS_amt, 8, 11, 63
     HC_JOBS_amt = trim(HC_JOBS_amt)
@@ -351,7 +477,7 @@ Function add_JOBS_to_variable(variable_name_for_JOBS)
     current_month_for_hc_est = dateadd("m", "1", date)
     current_month_for_hc_est = datepart("m", current_month_for_hc_est)
     IF len(current_month_for_hc_est) = 1 THEN current_month_for_hc_est = "0" & current_month_for_hc_est
-    IF footer_month = current_month_for_hc_est THEN
+    IF MAXIS_footer_month = current_month_for_hc_est THEN
 	IF HC_JOBS_amt <> "________" THEN variable_name_for_JOBS = variable_name_for_JOBS & "- HC Inc Est: $" & HC_JOBS_amt & "/" & pay_frequency & "; "
     END IF
 	If JOBS_ver = "N" or JOBS_ver = "?" then variable_name_for_JOBS = variable_name_for_JOBS & "- No proof provided for this panel; "
@@ -548,7 +674,7 @@ Function add_UNEA_to_variable(variable_name_for_UNEA)
     current_month_for_hc_est = dateadd("m", "1", date)
     current_month_for_hc_est = datepart("m", current_month_for_hc_est)
     IF len(current_month_for_hc_est) = 1 THEN current_month_for_hc_est = "0" & current_month_for_hc_est
-    IF footer_month = current_month_for_hc_est THEN
+    IF MAXIS_footer_month = current_month_for_hc_est THEN
     	If HC_UNEA_amt <> "" THEN variable_name_for_UNEA = variable_name_for_UNEA & "- HC Inc Est: $" & HC_UNEA_amt & "/" & pay_frequency & "; "
     END IF
     If UNEA_ver = "N" or UNEA_ver = "?" then variable_name_for_UNEA = variable_name_for_UNEA & "- No proof provided for this panel; "
@@ -1013,7 +1139,8 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
     Next
   Elseif panel_read_from = "FMED" then '----------------------------------------------------------------------------------------------------FMED
 	For each HH_member in HH_member_array
-	  ERRR_screen_check
+	  EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	  If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
       EMWriteScreen HH_member, 20, 76
       EMWriteScreen "01", 20, 79
       transmit
@@ -1484,30 +1611,65 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
   Elseif panel_read_from = "WREG" then '---------------------------------------------------------------------------------------------------WREG
 	For each HH_member in HH_member_array
       EMWriteScreen HH_member, 20, 76
-      EMWriteScreen "01", 20, 79
       transmit
     EMReadScreen wreg_total, 1, 2, 78
-    EMReadScreen snap_case_yn, 1, 6, 50
-    IF wreg_total <> "0" and snap_case_yn = "Y" THEN
+    IF wreg_total <> "0" THEN
 	EmWriteScreen "x", 13, 57
 	transmit
-	 bene_mo_col = (15 + (4*cint(footer_month)))
+	 bene_mo_col = (15 + (4*cint(MAXIS_footer_month)))
 	  bene_yr_row = 10
        abawd_counted_months = 0
        second_abawd_period = 0
  	 month_count = 0
  	   DO
-  		  EMReadScreen is_counted_month, 1, bene_yr_row, bene_mo_col
-  		    IF is_counted_month = "X" or is_counted_month = "M" THEN abawd_counted_months = abawd_counted_months + 1
-		    IF is_counted_month = "Y" or is_counted_month = "N" THEN second_abawd_period = second_abawd_period + 1
-   		  bene_mo_col = bene_mo_col - 4
-    		    IF bene_mo_col = 15 THEN
+	   		'establishing variables for specific ABAWD counted month dates
+	 		If bene_mo_col = "19" then counted_date_month = "01"
+	 		If bene_mo_col = "23" then counted_date_month = "02"
+	 		If bene_mo_col = "27" then counted_date_month = "03"
+	 		If bene_mo_col = "31" then counted_date_month = "04"
+	 		If bene_mo_col = "35" then counted_date_month = "05"
+	 		If bene_mo_col = "39" then counted_date_month = "06"
+	 		If bene_mo_col = "43" then counted_date_month = "07"
+	 		If bene_mo_col = "47" then counted_date_month = "08"
+	 		If bene_mo_col = "51" then counted_date_month = "09"
+	 		If bene_mo_col = "55" then counted_date_month = "10"
+	 		If bene_mo_col = "59" then counted_date_month = "11"
+	 		If bene_mo_col = "63" then counted_date_month = "12"
+	 		'reading to see if a month is counted month or not	
+  		  	EMReadScreen is_counted_month, 1, bene_yr_row, bene_mo_col
+			'counting and checking for counted ABAWD months
+			IF is_counted_month = "X" or is_counted_month = "M" THEN
+				EMReadScreen counted_date_year, 2, bene_yr_row, 14			'reading counted year date
+				abawd_counted_months_string = counted_date_month & "/" & counted_date_year
+				abawd_info_list = abawd_info_list & ", " & abawd_counted_months_string			'adding variable to list to add to array
+				abawd_counted_months = abawd_counted_months + 1				'adding counted months
+			END IF
+			
+			'declaring & splitting the abawd months array
+			If left(abawd_info_list, 1) = "," then abawd_info_list = right(abawd_info_list, len(abawd_info_list) - 1)
+			abawd_months_array = Split(abawd_info_list, ",")
+			
+			'counting and checking for second set of ABAWD months
+			IF is_counted_month = "Y" or is_counted_month = "N" THEN
+				EMReadScreen counted_date_year, 2, bene_yr_row, 14			'reading counted year date
+				second_abawd_period = second_abawd_period + 1				'adding counted months
+				second_counted_months_string = counted_date_month & "/" & counted_date_year			'creating new variable for array
+				second_set_info_list = second_set_info_list & ", " & second_counted_months_string	'adding variable to list to add to array
+			END IF
+
+			'declaring & splitting the second set of abawd months array
+			If left(second_set_info_list, 1) = "," then second_set_info_list = right(second_set_info_list, len(second_set_info_list) - 1)
+			second_months_array = Split(second_set_info_list,",")
+
+			bene_mo_col = bene_mo_col - 4
+    		IF bene_mo_col = 15 THEN
         		bene_yr_row = bene_yr_row - 1
    	     		bene_mo_col = 63
    	   	    END IF
-    		  month_count = month_count + 1
+    		month_count = month_count + 1
   	   LOOP until month_count = 36
-  	PF3
+  		PF3
+		
 	EmreadScreen read_WREG_status, 2, 8, 50
 	If read_WREG_status = "03" THEN  WREG_status = "WREG = incap"
 	If read_WREG_status = "04" THEN  WREG_status = "WREG = resp for incap HH memb"
@@ -1543,8 +1705,8 @@ Function autofill_editbox_from_MAXIS(HH_member_array, panel_read_from, variable_
 	If read_abawd_status = "07" THEN  abawd_status = "ABAWD = work exp participant."
 	If read_abawd_status = "08" THEN  abawd_status = "ABAWD = othr E & T service."
 	If read_abawd_status = "09" THEN  abawd_status = "ABAWD = reside in waiver area."
-	If read_abawd_status = "10" THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo"
-	If read_abawd_status = "11" THEN  abawd_status = "ABAWD = using 2nd three mo period of elig."
+	If read_abawd_status = "10" THEN  abawd_status = "ABAWD = ABAWD & has used " & abawd_counted_months & " mo." & " List of counted ABAWD months:" & abawd_info_list & ". Second set of ABAWD months used:" & second_set_info_list & "."
+	If read_abawd_status = "11" THEN  abawd_status = "ABAWD = Using 2nd set of ABAWD months. List of 2nd set used:" & second_set_info_list & "."
 	If read_abawd_status = "12" THEN  abawd_status = "ABAWD = RCA or GA recip."
 	If read_abawd_status = "13" THEN  abawd_status = "ABAWD = ABAWD extension."
 	If read_abawd_status = "__" THEN  abawd_status = "ABAWD = blank"
@@ -1569,7 +1731,8 @@ End function
 FUNCTION cancel_confirmation
 	If ButtonPressed = 0 then
 		cancel_confirm = MsgBox("Are you sure you want to cancel the script? Press YES to cancel. Press NO to return to the script.", vbYesNo)
-		If cancel_confirm = vbYes then stopscript
+		If cancel_confirm = vbYes then script_end_procedure("CANCEL BUTTON SELECTED")     
+        'script_end_procedure text added for statistical purposes. If script was canceled prior to completion, the statistics will reflect this.
 	End if
 END FUNCTION
 
@@ -1639,12 +1802,12 @@ Function convert_array_to_droplist_items(array_to_convert, output_droplist_box)
 	Next
 End Function
 
-'This function converts a date (MM/DD/YY or MM/DD/YYYY format) into a separate footer month and footer year variables. For best results, always use footer_month and footer_year as the appropriate variables.
-FUNCTION convert_date_into_MAXIS_footer_month(date_to_convert, footer_month, footer_year)
-	footer_month = DatePart("m", date_to_convert)						'Uses DatePart function to copy the month from date_to_convert into the footer_month variable.
-	IF Len(footer_month) = 1 THEN footer_month = "0" & footer_month		'Uses Len function to determine if the footer_month is a single digit month. If so, it adds a 0, which MAXIS needs.
-	footer_year = DatePart("yyyy", date_to_convert)						'Uses DatePart function to copy the year from date_to_convert into the footer_year variable.
-	footer_year = Right(footer_year, 2)									'Uses Right function to reduce the footer_year variable to it's right 2 characters (allowing for a 2 digit footer year).
+'This function converts a date (MM/DD/YY or MM/DD/YYYY format) into a separate footer month and footer year variables. For best results, always use MAXIS_footer_month and MAXIS_footer_year as the appropriate variables.
+FUNCTION convert_date_into_MAXIS_footer_month(date_to_convert, MAXIS_footer_month, MAXIS_footer_year)
+	IF Len(MAXIS_footer_month) = 1 THEN MAXIS_footer_month = "0" & MAXIS_footer_month		'Uses Len function to determine if the MAXIS_footer_month is a single digit month. If so, it adds a 0, which MAXIS needs.
+	MAXIS_footer_month = DatePart("m", date_to_convert)										'Uses DatePart function to copy the month from date_to_convert into the MAXIS_footer_month variable.
+	MAXIS_footer_year = DatePart("yyyy", date_to_convert)									'Uses DatePart function to copy the year from date_to_convert into the MAXIS_footer_year variable.
+	MAXIS_footer_year = Right(MAXIS_footer_year, 2)											'Uses Right function to reduce the MAXIS_footer_year variable to it's right 2 characters (allowing for a 2 digit footer year).
 END FUNCTION
 
 'This function converts a numeric digit to an Excel column, up to 104 digits (columns).
@@ -1664,7 +1827,7 @@ end function
 
 Function create_array_of_all_active_x_numbers_in_county(array_name, county_code)
 	'Getting to REPT/USER
-	call navigate_to_screen("rept", "user")
+	call navigate_to_MAXIS_screen("rept", "user")
 
 	'Hitting PF5 to force sorting, which allows directly selecting a county
 	PF5
@@ -1844,6 +2007,205 @@ Function fix_case(phrase_to_split, smallest_length_to_skip)										'Ex: fix_ca
 	phrase_to_split = output_phrase																'making the phrase_to_split equal to the output, so that it can be used by the rest of the script.
 End function
 
+Function get_county_code		'Determines county_name from worker_county_code, and asks for it if it's blank
+	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
+		worker_county_code = "PWVTS"
+	Else
+		If worker_county_code = "MULTICOUNTY" or worker_county_code = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
+			Do
+				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
+				If two_digit_county_code_variable = "" then stopscript
+				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
+			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True
+			worker_county_code = "x1" & two_digit_county_code_variable
+			If two_digit_county_code_variable = "91" then worker_county_code = "PW"	'For DHS folks without proxy
+		End If
+	End if
+    
+    'Determining county name
+    if worker_county_code = "x101" then
+        county_name = "Aitkin County"
+    elseif worker_county_code = "x102" then
+        county_name = "Anoka County"
+    elseif worker_county_code = "x103" then
+        county_name = "Becker County"
+    elseif worker_county_code = "x104" then
+        county_name = "Beltrami County"
+    elseif worker_county_code = "x105" then
+        county_name = "Benton County"
+    elseif worker_county_code = "x106" then
+        county_name = "Big Stone County"
+    elseif worker_county_code = "x107" then
+        county_name = "Blue Earth County"
+    elseif worker_county_code = "x108" then
+        county_name = "Brown County"
+    elseif worker_county_code = "x109" then
+        county_name = "Carlton County"
+    elseif worker_county_code = "x110" then
+        county_name = "Carver County"
+    elseif worker_county_code = "x111" then
+        county_name = "Cass County"
+    elseif worker_county_code = "x112" then
+        county_name = "Chippewa County"
+    elseif worker_county_code = "x113" then
+        county_name = "Chisago County"
+    elseif worker_county_code = "x114" then
+        county_name = "Clay County"
+    elseif worker_county_code = "x115" then
+        county_name = "Clearwater County"
+    elseif worker_county_code = "x116" then
+        county_name = "Cook County"
+    elseif worker_county_code = "x117" then
+        county_name = "Cottonwood County"
+    elseif worker_county_code = "x118" then
+        county_name = "Crow Wing County"
+    elseif worker_county_code = "x119" then
+        county_name = "Dakota County"
+    elseif worker_county_code = "x120" then
+        county_name = "Dodge County"
+    elseif worker_county_code = "x121" then
+        county_name = "Douglas County"
+    elseif worker_county_code = "x122" then
+        county_name = "Faribault County"
+    elseif worker_county_code = "x123" then
+        county_name = "Fillmore County"
+    elseif worker_county_code = "x124" then
+        county_name = "Freeborn County"
+    elseif worker_county_code = "x125" then
+        county_name = "Goodhue County"
+    elseif worker_county_code = "x126" then
+        county_name = "Grant County"
+    elseif worker_county_code = "x127" then
+        county_name = "Hennepin County"
+    elseif worker_county_code = "x128" then
+        county_name = "Houston County"
+    elseif worker_county_code = "x129" then
+        county_name = "Hubbard County"
+    elseif worker_county_code = "x130" then
+        county_name = "Isanti County"
+    elseif worker_county_code = "x131" then
+        county_name = "Itasca County"
+    elseif worker_county_code = "x132" then
+        county_name = "Jackson County"
+    elseif worker_county_code = "x133" then
+        county_name = "Kanabec County"
+    elseif worker_county_code = "x134" then
+        county_name = "Kandiyohi County"
+    elseif worker_county_code = "x135" then
+        county_name = "Kittson County"
+    elseif worker_county_code = "x136" then
+        county_name = "Koochiching County"
+    elseif worker_county_code = "x137" then
+        county_name = "Lac Qui Parle County"
+    elseif worker_county_code = "x138" then
+        county_name = "Lake County"
+    elseif worker_county_code = "x139" then
+        county_name = "Lake of the Woods County"
+    elseif worker_county_code = "x140" then
+        county_name = "LeSueur County"
+    elseif worker_county_code = "x141" then
+        county_name = "Lincoln County"
+    elseif worker_county_code = "x142" then
+        county_name = "Lyon County"
+    elseif worker_county_code = "x143" then
+        county_name = "Mcleod County"
+    elseif worker_county_code = "x144" then
+        county_name = "Mahnomen County"
+    elseif worker_county_code = "x145" then
+        county_name = "Marshall County"
+    elseif worker_county_code = "x146" then
+        county_name = "Martin County"
+    elseif worker_county_code = "x147" then
+        county_name = "Meeker County"
+    elseif worker_county_code = "x148" then
+        county_name = "Mille Lacs County"
+    elseif worker_county_code = "x149" then
+        county_name = "Morrison County"
+    elseif worker_county_code = "x150" then
+        county_name = "Mower County"
+    elseif worker_county_code = "x151" then
+        county_name = "Murray County"
+    elseif worker_county_code = "x152" then
+        county_name = "Nicollet County"
+    elseif worker_county_code = "x153" then
+        county_name = "Nobles County"
+    elseif worker_county_code = "x154" then
+        county_name = "Norman County"
+    elseif worker_county_code = "x155" then
+        county_name = "Olmsted County"
+    elseif worker_county_code = "x156" then
+        county_name = "Otter Tail County"
+    elseif worker_county_code = "x157" then
+        county_name = "Pennington County"
+    elseif worker_county_code = "x158" then
+        county_name = "Pine County"
+    elseif worker_county_code = "x159" then
+        county_name = "Pipestone County"
+    elseif worker_county_code = "x160" then
+        county_name = "Polk County"
+    elseif worker_county_code = "x161" then
+        county_name = "Pope County"
+    elseif worker_county_code = "x162" then
+        county_name = "Ramsey County"
+    elseif worker_county_code = "x163" then
+        county_name = "Red Lake County"
+    elseif worker_county_code = "x164" then
+        county_name = "Redwood County"
+    elseif worker_county_code = "x165" then
+        county_name = "Renville County"
+    elseif worker_county_code = "x166" then
+        county_name = "Rice County"
+    elseif worker_county_code = "x167" then
+        county_name = "Rock County"
+    elseif worker_county_code = "x168" then
+        county_name = "Roseau County"
+    elseif worker_county_code = "x169" then
+        county_name = "St. Louis County"
+    elseif worker_county_code = "x170" then
+        county_name = "Scott County"
+    elseif worker_county_code = "x171" then
+        county_name = "Sherburne County"
+    elseif worker_county_code = "x172" then
+        county_name = "Sibley County"
+    elseif worker_county_code = "x173" then
+        county_name = "Stearns County"
+    elseif worker_county_code = "x174" then
+        county_name = "Steele County"
+    elseif worker_county_code = "x175" then
+        county_name = "Stevens County"
+    elseif worker_county_code = "x176" then
+        county_name = "Swift County"
+    elseif worker_county_code = "x177" then
+        county_name = "Todd County"
+    elseif worker_county_code = "x178" then
+        county_name = "Traverse County"
+    elseif worker_county_code = "x179" then
+        county_name = "Wabasha County"
+    elseif worker_county_code = "x180" then
+        county_name = "Wadena County"
+    elseif worker_county_code = "x181" then
+        county_name = "Waseca County"
+    elseif worker_county_code = "x182" then
+        county_name = "Washington County"
+    elseif worker_county_code = "x183" then
+        county_name = "Watonwan County"
+    elseif worker_county_code = "x184" then
+        county_name = "Wilkin County"
+    elseif worker_county_code = "x185" then
+        county_name = "Winona County"
+    elseif worker_county_code = "x186" then
+        county_name = "Wright County"
+    elseif worker_county_code = "x187" then
+        county_name = "Yellow Medicine County"
+    elseif worker_county_code = "x188" then
+        county_name = "Mille Lacs Band"
+    elseif worker_county_code = "x192" then
+        county_name = "White Earth Nation"
+    elseif worker_county_code = "PWVTS" then 
+    	county_name = "Pine Tech"
+    end if
+End function
+
 Function get_to_MMIS_session_begin
   Do
     EMSendkey "<PF6>"
@@ -1939,7 +2301,7 @@ end function
 
 Function MAXIS_background_check
 	Do
-		call navigate_to_screen("STAT", "SUMM")
+		call navigate_to_MAXIS_screen("STAT", "SUMM")
 		EMReadScreen SELF_check, 4, 2, 50
 		If SELF_check = "SELF" then
 			PF3
@@ -2010,60 +2372,61 @@ FUNCTION MAXIS_dialog_navigation
 	End if
 
 	'This part takes care of remaining navigation buttons, designed to go to a single panel.
-	If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
-	If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
-	If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
-	If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
-	If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
-	If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
-	If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
-	If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
-	If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
-	If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
-	If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
-	If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
-	If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
-	If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
-	If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
-	If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
-	If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
-	If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
-	If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
-	If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
-	If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
-	If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
-	If ButtonPressed = ELIG_GRH_button then call navigate_to_screen("elig", "GRH_")
-	If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
-	If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
-	If ButtonPressed = HCMI_button then call navigate_to_screen("stat", "HCMI")
-	If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
-	If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
-	If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
-	If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
-	If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
-	If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
-	If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
-	If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
-	If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
-	If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
-	If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
-	If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
-	If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
-	If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
-	If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
-	If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
-	If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
-	If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
-	If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
-	If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
-	If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
-	If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
-	If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
-	If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
-	If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
-	If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
-	If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
-	If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+	If ButtonPressed = ABPS_button then call navigate_to_MAXIS_screen("stat", "ABPS")
+	If ButtonPressed = ACCI_button then call navigate_to_MAXIS_screen("stat", "ACCI")
+	If ButtonPressed = ACCT_button then call navigate_to_MAXIS_screen("stat", "ACCT")
+	If ButtonPressed = ADDR_button then call navigate_to_MAXIS_screen("stat", "ADDR")
+	If ButtonPressed = ALTP_button then call navigate_to_MAXIS_screen("stat", "ALTP")
+	If ButtonPressed = AREP_button then call navigate_to_MAXIS_screen("stat", "AREP")
+	If ButtonPressed = BILS_button then call navigate_to_MAXIS_screen("stat", "BILS")
+	If ButtonPressed = BUSI_button then call navigate_to_MAXIS_screen("stat", "BUSI")
+	If ButtonPressed = CARS_button then call navigate_to_MAXIS_screen("stat", "CARS")
+	If ButtonPressed = CASH_button then call navigate_to_MAXIS_screen("stat", "CASH")
+	If ButtonPressed = COEX_button then call navigate_to_MAXIS_screen("stat", "COEX")
+	If ButtonPressed = DCEX_button then call navigate_to_MAXIS_screen("stat", "DCEX")
+	If ButtonPressed = DIET_button then call navigate_to_MAXIS_screen("stat", "DIET")
+	If ButtonPressed = DISA_button then call navigate_to_MAXIS_screen("stat", "DISA")
+	If ButtonPressed = EATS_button then call navigate_to_MAXIS_screen("stat", "EATS")
+	If ButtonPressed = ELIG_DWP_button then call navigate_to_MAXIS_screen("elig", "DWP_")
+	If ButtonPressed = ELIG_FS_button then call navigate_to_MAXIS_screen("elig", "FS__")
+	If ButtonPressed = ELIG_GA_button then call navigate_to_MAXIS_screen("elig", "GA__")
+	If ButtonPressed = ELIG_HC_button then call navigate_to_MAXIS_screen("elig", "HC__")
+	If ButtonPressed = ELIG_MFIP_button then call navigate_to_MAXIS_screen("elig", "MFIP")
+	If ButtonPressed = ELIG_MSA_button then call navigate_to_MAXIS_screen("elig", "MSA_")
+	If ButtonPressed = ELIG_WB_button then call navigate_to_MAXIS_screen("elig", "WB__")
+	If ButtonPressed = ELIG_GRH_button then call navigate_to_MAXIS_screen("elig", "GRH_")
+	If ButtonPressed = FACI_button then call navigate_to_MAXIS_screen("stat", "FACI")
+	If ButtonPressed = FMED_button then call navigate_to_MAXIS_screen("stat", "FMED")
+	If ButtonPressed = HCMI_button then call navigate_to_MAXIS_screen("stat", "HCMI")
+	If ButtonPressed = HCRE_button then call navigate_to_MAXIS_screen("stat", "HCRE")
+	If ButtonPressed = HEST_button then call navigate_to_MAXIS_screen("stat", "HEST")
+	If ButtonPressed = IMIG_button then call navigate_to_MAXIS_screen("stat", "IMIG")
+	If ButtonPressed = INSA_button then call navigate_to_MAXIS_screen("stat", "INSA")
+	If ButtonPressed = JOBS_button then call navigate_to_MAXIS_screen("stat", "JOBS")
+	If ButtonPressed = MEDI_button then call navigate_to_MAXIS_screen("stat", "MEDI")
+	If ButtonPressed = MEMB_button then call navigate_to_MAXIS_screen("stat", "MEMB")
+	If ButtonPressed = MEMI_button then call navigate_to_MAXIS_screen("stat", "MEMI")
+	If ButtonPressed = MONT_button then call navigate_to_MAXIS_screen("stat", "MONT")
+	If ButtonPressed = OTHR_button then call navigate_to_MAXIS_screen("stat", "OTHR")
+	If ButtonPressed = PBEN_button then call navigate_to_MAXIS_screen("stat", "PBEN")
+	If ButtonPressed = PDED_button then call navigate_to_MAXIS_screen("stat", "PDED")
+	If ButtonPressed = PREG_button then call navigate_to_MAXIS_screen("stat", "PREG")
+	If ButtonPressed = PROG_button then call navigate_to_MAXIS_screen("stat", "PROG")
+	If ButtonPressed = RBIC_button then call navigate_to_MAXIS_screen("stat", "RBIC")
+	If ButtonPressed = REST_button then call navigate_to_MAXIS_screen("stat", "REST")
+	If ButtonPressed = REVW_button then call navigate_to_MAXIS_screen("stat", "REVW")
+	If ButtonPressed = SCHL_button then call navigate_to_MAXIS_screen("stat", "SCHL")
+	If ButtonPressed = SECU_button then call navigate_to_MAXIS_screen("stat", "SECU")
+	If ButtonPressed = SPON_button then call navigate_to_MAXIS_screen("stat", "SPON")
+	If ButtonPressed = STIN_button then call navigate_to_MAXIS_screen("stat", "STIN")
+	If ButtonPressed = STEC_button then call navigate_to_MAXIS_screen("stat", "STEC")
+	If ButtonPressed = STWK_button then call navigate_to_MAXIS_screen("stat", "STWK")
+	If ButtonPressed = SHEL_button then call navigate_to_MAXIS_screen("stat", "SHEL")
+	If ButtonPressed = SWKR_button then call navigate_to_MAXIS_screen("stat", "SWKR")
+	If ButtonPressed = TRAN_button then call navigate_to_MAXIS_screen("stat", "TRAN")
+	If ButtonPressed = TYPE_button then call navigate_to_MAXIS_screen("stat", "TYPE")
+	If ButtonPressed = UNEA_button then call navigate_to_MAXIS_screen("stat", "UNEA")
+    If ButtonPressed = WKEX_button then call navigate_to_MAXIS_screen("stat", "WKEX")
 END FUNCTION
 
 FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the footer month/year
@@ -2080,7 +2443,7 @@ FUNCTION MAXIS_footer_finder(MAXIS_footer_month, MAXIS_footer_year)'Grabbing the
 END FUNCTION
 
 'Function for checking and changing the footer month to the MAXIS_footer_month & MAXIS_footer_year selected by the user in the inital dialog if necessary
-FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS footer_year as variables for this function to work
+FUNCTION MAXIS_footer_month_confirmation	'Must use MAXIS_footer_month & MAXIS MAXIS_footer_year as variables for this function to work
 	EMReadScreen SELF_check, 4, 2, 50			'Does this to check to see if we're on SELF screen
 	IF SELF_check = "SELF" THEN
 		EMReadScreen panel_footer_month, 2, 20, 43
@@ -2153,6 +2516,143 @@ Function MMIS_RKEY_finder
   EMWaitReady 0, 0
 End function
 
+FUNCTION navigate_to_MAXIS(maxis_mode)  'This function is to be used when navigating back to MAXIS from another function in BlueZone (MMIS, PRISM, INFOPAC, etc.)
+	attn
+	EMConnect "A"
+	IF maxis_mode = "PRODUCTION" THEN
+		EMReadScreen prod_running, 7, 6, 15
+		IF prod_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen prod_running, 7, 6, 15
+			IF prod_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than S2.")
+			END IF
+		END IF
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMReadScreen inq_running, 7, 7, 15
+		IF inq_running = "RUNNING" THEN
+			x = "A"
+		ELSE
+			EMConnect "B"
+			attn
+			EMReadScreen inq_running, 7, 7, 15
+			IF inq_running = "RUNNING" THEN
+				x = "B"
+			ELSE
+				script_end_procedure("Please do not run this script in a session larger than 2.")
+			END IF
+		END IF
+	END IF
+
+	EMConnect (x)
+	IF maxis_mode = "PRODUCTION" THEN
+		EMWriteScreen "1", 2, 15
+		transmit
+	ELSEIF maxis_mode = "INQUIRY DB" THEN
+		EMWriteScreen "2", 2, 15
+		transmit
+	END IF
+END FUNCTION
+
+FUNCTION navigate_to_MMIS   'This function is to be used when navigating to MMIS from another function in BlueZone (MAXIS, PRISM, INFOPAC, etc.)
+	attn
+	Do
+		EMReadScreen MAI_check, 3, 1, 33
+		If MAI_check <> "MAI" then EMWaitReady 1, 1
+	Loop until MAI_check = "MAI"
+
+	EMReadScreen mmis_check, 7, 15, 15
+	IF mmis_check = "RUNNING" THEN
+		EMWriteScreen "10", 2, 15
+		transmit
+	ELSE
+		EMConnect"A"
+		attn
+		EMReadScreen mmis_check, 7, 15, 15
+		IF mmis_check = "RUNNING" THEN
+			EMWriteScreen "10", 2, 15
+			transmit
+		ELSE
+			EMConnect"B"
+			attn
+			EMReadScreen mmis_b_check, 7, 15, 15
+			IF mmis_b_check <> "RUNNING" THEN
+				script_end_procedure("You do not appear to have MMIS running. This script will now stop. Please make sure you have an active version of MMIS and re-run the script.")
+			ELSE
+				EMWriteScreen "10", 2, 15
+				transmit
+			END IF
+		END IF
+	END IF
+
+	DO
+		PF6
+		EMReadScreen password_prompt, 38, 2, 23
+		IF password_prompt = "ACF2/CICS PASSWORD VERIFICATION PROMPT" then StopScript
+		EMReadScreen session_start, 18, 1, 7
+	LOOP UNTIL session_start = "SESSION TERMINATED"
+
+	'Getting back in to MMIS and trasmitting past the warning screen (workers should already have accepted the warning when they logged themselves into MMIS the first time, yo.
+	EMWriteScreen "MW00", 1, 2
+	transmit
+	transmit
+
+	'The following will select the correct version of MMIS. First it looks for C302, then EK01, then C402.
+	row = 1
+	col = 1
+	EMSearch ("C3" & right(worker_county_code, 2)), row, col
+	If row <> 0 then
+		If row <> 1 then 'It has to do this in case the worker only has one option (as many LTC and OSA workers don't have the option to decide between MAXIS and MCRE case access). The MMIS screen will show the text, but it's in the first row in these instances.
+			EMWriteScreen "x", row, 4
+			transmit
+		End if
+	Else 'Some staff may only have EK01 (MMIS MCRE). The script will allow workers to use that if applicable.
+		row = 1
+		col = 1
+		EMSearch "EK01", row, col
+		If row <> 0 then
+			If row <> 1 then
+				EMWriteScreen "x", row, 4
+				transmit
+			End if
+		Else 'Some OSAs have C402 (limited access). This will search for that.
+			row = 1
+			col = 1
+			EMSearch ("C4" & right(worker_county_code, 2)), row, col
+			If row <> 0 then
+				If row <> 1 then
+					EMWriteScreen "x", row, 4
+					transmit
+				End if
+			Else 'Some OSAs have EKIQ (limited MCRE access). This will search for that.
+				row = 1
+				col = 1
+				EMSearch "EKIQ", row, col
+				If row <> 0 then
+					If row <> 1 then
+						EMWriteScreen "x", row, 4
+						transmit
+					End if
+				Else
+					script_end_procedure("C4" & right(worker_county_code, 2) & ", C3" & right(worker_county_code, 2) & ", EKIQ, or EK01 not found. Your access to MMIS may be limited. Contact your script Alpha user if you have questions about using this script.")
+				End if
+			End if
+		End if
+	END IF
+
+	'Now it finds the recipient file application feature and selects it.
+	row = 1
+	col = 1
+	EMSearch "RECIPIENT FILE APPLICATION", row, col
+	EMWriteScreen "x", row, col - 3
+	transmit
+END FUNCTION
+
 Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
   EMSendKey "<enter>"
   EMWaitReady 0, 0
@@ -2175,7 +2675,7 @@ Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
       current_case_number = replace(current_case_number, "_", "")
       current_case_number = trim(current_case_number)
     End if
-    If current_case_number = case_number and MAXIS_function = ucase(function_to_go_to) and STAT_note_check <> "NOTE" then
+    If current_case_number = MAXIS_case_number and MAXIS_function = ucase(function_to_go_to) and STAT_note_check <> "NOTE" then
       row = 1
       col = 1
       EMSearch "Command: ", row, col
@@ -2190,9 +2690,9 @@ Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
       Loop until SELF_check = "SELF"
       EMWriteScreen function_to_go_to, 16, 43
       EMWriteScreen "________", 18, 43
-      EMWriteScreen case_number, 18, 43
-      EMWriteScreen footer_month, 20, 43
-      EMWriteScreen footer_year, 20, 46
+      EMWriteScreen MAXIS_case_number, 18, 43
+      EMWriteScreen MAXIS_footer_month, 20, 43
+      EMWriteScreen MAXIS_footer_year, 20, 46
       EMWriteScreen command_to_go_to, 21, 70
       EMSendKey "<enter>"
       EMWaitReady 0, 0
@@ -2201,11 +2701,8 @@ Function navigate_to_MAXIS_screen(function_to_go_to, command_to_go_to)
         EMSendKey "<enter>"
         EMWaitReady 0, 0
       End if
-	  EMReadScreen ERRR_screen_check, 4, 2, 52
-	  If ERRR_screen_check = "ERRR" then
-	    EMSendKey "<enter>"
-        EMWaitReady 0, 0
-      End if
+	  EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	  If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
     End if
   End if
 End function
@@ -2217,58 +2714,58 @@ Function navigate_to_PRISM_screen(x) 'x is the name of the screen
 End function
 
 function navigation_buttons 'this works by calling the navigation_buttons function when the buttonpressed isn't -1
-  If ButtonPressed = ABPS_button then call navigate_to_screen("stat", "ABPS")
-  If ButtonPressed = ACCI_button then call navigate_to_screen("stat", "ACCI")
-  If ButtonPressed = ACCT_button then call navigate_to_screen("stat", "ACCT")
-  If ButtonPressed = ADDR_button then call navigate_to_screen("stat", "ADDR")
-  If ButtonPressed = ALTP_button then call navigate_to_screen("stat", "ALTP")
-  If ButtonPressed = AREP_button then call navigate_to_screen("stat", "AREP")
-  If ButtonPressed = BILS_button then call navigate_to_screen("stat", "BILS")
-  If ButtonPressed = BUSI_button then call navigate_to_screen("stat", "BUSI")
-  If ButtonPressed = CARS_button then call navigate_to_screen("stat", "CARS")
-  If ButtonPressed = CASH_button then call navigate_to_screen("stat", "CASH")
-  If ButtonPressed = COEX_button then call navigate_to_screen("stat", "COEX")
-  If ButtonPressed = DCEX_button then call navigate_to_screen("stat", "DCEX")
-  If ButtonPressed = DIET_button then call navigate_to_screen("stat", "DIET")
-  If ButtonPressed = DISA_button then call navigate_to_screen("stat", "DISA")
-  If ButtonPressed = EATS_button then call navigate_to_screen("stat", "EATS")
-  If ButtonPressed = ELIG_DWP_button then call navigate_to_screen("elig", "DWP_")
-  If ButtonPressed = ELIG_FS_button then call navigate_to_screen("elig", "FS__")
-  If ButtonPressed = ELIG_GA_button then call navigate_to_screen("elig", "GA__")
-  If ButtonPressed = ELIG_HC_button then call navigate_to_screen("elig", "HC__")
-  If ButtonPressed = ELIG_MFIP_button then call navigate_to_screen("elig", "MFIP")
-  If ButtonPressed = ELIG_MSA_button then call navigate_to_screen("elig", "MSA_")
-  If ButtonPressed = ELIG_WB_button then call navigate_to_screen("elig", "WB__")
-  If ButtonPressed = FACI_button then call navigate_to_screen("stat", "FACI")
-  If ButtonPressed = FMED_button then call navigate_to_screen("stat", "FMED")
-  If ButtonPressed = HCRE_button then call navigate_to_screen("stat", "HCRE")
-  If ButtonPressed = HEST_button then call navigate_to_screen("stat", "HEST")
-  If ButtonPressed = IMIG_button then call navigate_to_screen("stat", "IMIG")
-  If ButtonPressed = INSA_button then call navigate_to_screen("stat", "INSA")
-  If ButtonPressed = JOBS_button then call navigate_to_screen("stat", "JOBS")
-  If ButtonPressed = MEDI_button then call navigate_to_screen("stat", "MEDI")
-  If ButtonPressed = MEMB_button then call navigate_to_screen("stat", "MEMB")
-  If ButtonPressed = MEMI_button then call navigate_to_screen("stat", "MEMI")
-  If ButtonPressed = MONT_button then call navigate_to_screen("stat", "MONT")
-  If ButtonPressed = OTHR_button then call navigate_to_screen("stat", "OTHR")
-  If ButtonPressed = PBEN_button then call navigate_to_screen("stat", "PBEN")
-  If ButtonPressed = PDED_button then call navigate_to_screen("stat", "PDED")
-  If ButtonPressed = PREG_button then call navigate_to_screen("stat", "PREG")
-  If ButtonPressed = PROG_button then call navigate_to_screen("stat", "PROG")
-  If ButtonPressed = RBIC_button then call navigate_to_screen("stat", "RBIC")
-  If ButtonPressed = REST_button then call navigate_to_screen("stat", "REST")
-  If ButtonPressed = REVW_button then call navigate_to_screen("stat", "REVW")
-  If ButtonPressed = SCHL_button then call navigate_to_screen("stat", "SCHL")
-  If ButtonPressed = SECU_button then call navigate_to_screen("stat", "SECU")
-  If ButtonPressed = STIN_button then call navigate_to_screen("stat", "STIN")
-  If ButtonPressed = STEC_button then call navigate_to_screen("stat", "STEC")
-  If ButtonPressed = STWK_button then call navigate_to_screen("stat", "STWK")
-  If ButtonPressed = SHEL_button then call navigate_to_screen("stat", "SHEL")
-  If ButtonPressed = SPON_button then call navigate_to_screen("stat", "SPON")
-  If ButtonPressed = SWKR_button then call navigate_to_screen("stat", "SWKR")
-  If ButtonPressed = TRAN_button then call navigate_to_screen("stat", "TRAN")
-  If ButtonPressed = TYPE_button then call navigate_to_screen("stat", "TYPE")
-  If ButtonPressed = UNEA_button then call navigate_to_screen("stat", "UNEA")
+  If ButtonPressed = ABPS_button then call navigate_to_MAXIS_screen("stat", "ABPS")
+  If ButtonPressed = ACCI_button then call navigate_to_MAXIS_screen("stat", "ACCI")
+  If ButtonPressed = ACCT_button then call navigate_to_MAXIS_screen("stat", "ACCT")
+  If ButtonPressed = ADDR_button then call navigate_to_MAXIS_screen("stat", "ADDR")
+  If ButtonPressed = ALTP_button then call navigate_to_MAXIS_screen("stat", "ALTP")
+  If ButtonPressed = AREP_button then call navigate_to_MAXIS_screen("stat", "AREP")
+  If ButtonPressed = BILS_button then call navigate_to_MAXIS_screen("stat", "BILS")
+  If ButtonPressed = BUSI_button then call navigate_to_MAXIS_screen("stat", "BUSI")
+  If ButtonPressed = CARS_button then call navigate_to_MAXIS_screen("stat", "CARS")
+  If ButtonPressed = CASH_button then call navigate_to_MAXIS_screen("stat", "CASH")
+  If ButtonPressed = COEX_button then call navigate_to_MAXIS_screen("stat", "COEX")
+  If ButtonPressed = DCEX_button then call navigate_to_MAXIS_screen("stat", "DCEX")
+  If ButtonPressed = DIET_button then call navigate_to_MAXIS_screen("stat", "DIET")
+  If ButtonPressed = DISA_button then call navigate_to_MAXIS_screen("stat", "DISA")
+  If ButtonPressed = EATS_button then call navigate_to_MAXIS_screen("stat", "EATS")
+  If ButtonPressed = ELIG_DWP_button then call navigate_to_MAXIS_screen("elig", "DWP_")
+  If ButtonPressed = ELIG_FS_button then call navigate_to_MAXIS_screen("elig", "FS__")
+  If ButtonPressed = ELIG_GA_button then call navigate_to_MAXIS_screen("elig", "GA__")
+  If ButtonPressed = ELIG_HC_button then call navigate_to_MAXIS_screen("elig", "HC__")
+  If ButtonPressed = ELIG_MFIP_button then call navigate_to_MAXIS_screen("elig", "MFIP")
+  If ButtonPressed = ELIG_MSA_button then call navigate_to_MAXIS_screen("elig", "MSA_")
+  If ButtonPressed = ELIG_WB_button then call navigate_to_MAXIS_screen("elig", "WB__")
+  If ButtonPressed = FACI_button then call navigate_to_MAXIS_screen("stat", "FACI")
+  If ButtonPressed = FMED_button then call navigate_to_MAXIS_screen("stat", "FMED")
+  If ButtonPressed = HCRE_button then call navigate_to_MAXIS_screen("stat", "HCRE")
+  If ButtonPressed = HEST_button then call navigate_to_MAXIS_screen("stat", "HEST")
+  If ButtonPressed = IMIG_button then call navigate_to_MAXIS_screen("stat", "IMIG")
+  If ButtonPressed = INSA_button then call navigate_to_MAXIS_screen("stat", "INSA")
+  If ButtonPressed = JOBS_button then call navigate_to_MAXIS_screen("stat", "JOBS")
+  If ButtonPressed = MEDI_button then call navigate_to_MAXIS_screen("stat", "MEDI")
+  If ButtonPressed = MEMB_button then call navigate_to_MAXIS_screen("stat", "MEMB")
+  If ButtonPressed = MEMI_button then call navigate_to_MAXIS_screen("stat", "MEMI")
+  If ButtonPressed = MONT_button then call navigate_to_MAXIS_screen("stat", "MONT")
+  If ButtonPressed = OTHR_button then call navigate_to_MAXIS_screen("stat", "OTHR")
+  If ButtonPressed = PBEN_button then call navigate_to_MAXIS_screen("stat", "PBEN")
+  If ButtonPressed = PDED_button then call navigate_to_MAXIS_screen("stat", "PDED")
+  If ButtonPressed = PREG_button then call navigate_to_MAXIS_screen("stat", "PREG")
+  If ButtonPressed = PROG_button then call navigate_to_MAXIS_screen("stat", "PROG")
+  If ButtonPressed = RBIC_button then call navigate_to_MAXIS_screen("stat", "RBIC")
+  If ButtonPressed = REST_button then call navigate_to_MAXIS_screen("stat", "REST")
+  If ButtonPressed = REVW_button then call navigate_to_MAXIS_screen("stat", "REVW")
+  If ButtonPressed = SCHL_button then call navigate_to_MAXIS_screen("stat", "SCHL")
+  If ButtonPressed = SECU_button then call navigate_to_MAXIS_screen("stat", "SECU")
+  If ButtonPressed = STIN_button then call navigate_to_MAXIS_screen("stat", "STIN")
+  If ButtonPressed = STEC_button then call navigate_to_MAXIS_screen("stat", "STEC")
+  If ButtonPressed = STWK_button then call navigate_to_MAXIS_screen("stat", "STWK")
+  If ButtonPressed = SHEL_button then call navigate_to_MAXIS_screen("stat", "SHEL")
+  If ButtonPressed = SPON_button then call navigate_to_MAXIS_screen("stat", "SPON")
+  If ButtonPressed = SWKR_button then call navigate_to_MAXIS_screen("stat", "SWKR")
+  If ButtonPressed = TRAN_button then call navigate_to_MAXIS_screen("stat", "TRAN")
+  If ButtonPressed = TYPE_button then call navigate_to_MAXIS_screen("stat", "TYPE")
+  If ButtonPressed = UNEA_button then call navigate_to_MAXIS_screen("stat", "UNEA")
 End function
 
 function new_BS_BSI_heading
@@ -2503,7 +3000,8 @@ END FUNCTION
 
 function script_end_procedure(closing_message)
 	stop_time = timer
-	If closing_message <> "" then MsgBox closing_message
+	If closing_message <> "" AND closing_message <> "CANCEL BUTTON SELECTED" then MsgBox closing_message
+    'Bypasses the closing message of "CANCEL BUTTON SELECTED" in the cancel_confirmation function if being used in scripts where chain-loading is occurring
 	script_run_time = stop_time - start_time
 	If is_county_collecting_stats  = True then
 		'Getting user name
@@ -2542,7 +3040,7 @@ function script_end_procedure(closing_message)
         End if
 
 	End if
-	stopscript
+	If disable_StopScript = FALSE or disable_StopScript = "" then stopscript
 end function
 
 function script_end_procedure_wsh(closing_message) 'For use when running a script outside of the BlueZone Script Host
@@ -2711,7 +3209,7 @@ END FUNCTION
 
 'Navigates you to a blank case note, presses PF9, and checks to make sure you're in edit mode (keeping you from writing all of the case note on an inquiry screen).
 FUNCTION start_a_blank_CASE_NOTE
-	call navigate_to_screen("case", "note")
+	call navigate_to_MAXIS_screen("case", "note")
 	DO
 		PF9
 		EMReadScreen case_note_check, 17, 2, 33
@@ -2777,204 +3275,6 @@ function transmit
   EMSendKey "<enter>"
   EMWaitReady 0, 0
 end function
-
-Function worker_county_code_determination(worker_county_code_variable, two_digit_county_code_variable)		'Determines worker_county_code and two_digit_county_code for multi-county agencies and DHS staff
-	If left(code_from_installer, 2) = "PT" then 'special handling for Pine Tech
-		worker_county_code_variable = "PWVTS"
-		county_name = "Pine Tech"
-	Else
-		If worker_county_code_variable = "MULTICOUNTY" or worker_county_code_variable = "" then 		'If the user works for many counties (i.e. SWHHS) or isn't assigned (i.e. a scriptwriter) it asks.
-			Do
-				two_digit_county_code_variable = inputbox("Select the county to proxy as. Ex: ''01''")
-				If two_digit_county_code_variable = "" then stopscript
-				If len(two_digit_county_code_variable) <> 2 or isnumeric(two_digit_county_code_variable) = False then MsgBox "Your county proxy code should be two digits and numeric."
-			Loop until len(two_digit_county_code_variable) = 2 and isnumeric(two_digit_county_code_variable) = True
-			worker_county_code_variable = "x1" & two_digit_county_code_variable
-			If two_digit_county_code_variable = "91" then worker_county_code_variable = "PW"	'For DHS folks without proxy
-
-			'Determining county name
-			if worker_county_code_variable = "x101" then
-				county_name = "Aitkin County"
-			elseif worker_county_code_variable = "x102" then
-				county_name = "Anoka County"
-			elseif worker_county_code_variable = "x103" then
-				county_name = "Becker County"
-			elseif worker_county_code_variable = "x104" then
-				county_name = "Beltrami County"
-			elseif worker_county_code_variable = "x105" then
-				county_name = "Benton County"
-			elseif worker_county_code_variable = "x106" then
-				county_name = "Big Stone County"
-			elseif worker_county_code_variable = "x107" then
-				county_name = "Blue Earth County"
-			elseif worker_county_code_variable = "x108" then
-				county_name = "Brown County"
-			elseif worker_county_code_variable = "x109" then
-				county_name = "Carlton County"
-			elseif worker_county_code_variable = "x110" then
-				county_name = "Carver County"
-			elseif worker_county_code_variable = "x111" then
-				county_name = "Cass County"
-			elseif worker_county_code_variable = "x112" then
-				county_name = "Chippewa County"
-			elseif worker_county_code_variable = "x113" then
-				county_name = "Chisago County"
-			elseif worker_county_code_variable = "x114" then
-				county_name = "Clay County"
-			elseif worker_county_code_variable = "x115" then
-				county_name = "Clearwater County"
-			elseif worker_county_code_variable = "x116" then
-				county_name = "Cook County"
-			elseif worker_county_code_variable = "x117" then
-				county_name = "Cottonwood County"
-			elseif worker_county_code_variable = "x118" then
-				county_name = "Crow Wing County"
-			elseif worker_county_code_variable = "x119" then
-				county_name = "Dakota County"
-			elseif worker_county_code_variable = "x120" then
-				county_name = "Dodge County"
-			elseif worker_county_code_variable = "x121" then
-				county_name = "Douglas County"
-			elseif worker_county_code_variable = "x122" then
-				county_name = "Faribault County"
-			elseif worker_county_code_variable = "x123" then
-				county_name = "Fillmore County"
-			elseif worker_county_code_variable = "x124" then
-				county_name = "Freeborn County"
-			elseif worker_county_code_variable = "x125" then
-				county_name = "Goodhue County"
-			elseif worker_county_code_variable = "x126" then
-				county_name = "Grant County"
-			elseif worker_county_code_variable = "x127" then
-				county_name = "Hennepin County"
-			elseif worker_county_code_variable = "x128" then
-				county_name = "Houston County"
-			elseif worker_county_code_variable = "x129" then
-				county_name = "Hubbard County"
-			elseif worker_county_code_variable = "x130" then
-				county_name = "Isanti County"
-			elseif worker_county_code_variable = "x131" then
-				county_name = "Itasca County"
-			elseif worker_county_code_variable = "x132" then
-				county_name = "Jackson County"
-			elseif worker_county_code_variable = "x133" then
-				county_name = "Kanabec County"
-			elseif worker_county_code_variable = "x134" then
-				county_name = "Kandiyohi County"
-			elseif worker_county_code_variable = "x135" then
-				county_name = "Kittson County"
-			elseif worker_county_code_variable = "x136" then
-				county_name = "Koochiching County"
-			elseif worker_county_code_variable = "x137" then
-				county_name = "Lac Qui Parle County"
-			elseif worker_county_code_variable = "x138" then
-				county_name = "Lake County"
-			elseif worker_county_code_variable = "x139" then
-				county_name = "Lake of the Woods County"
-			elseif worker_county_code_variable = "x140" then
-				county_name = "LeSueur County"
-			elseif worker_county_code_variable = "x141" then
-				county_name = "Lincoln County"
-			elseif worker_county_code_variable = "x142" then
-				county_name = "Lyon County"
-			elseif worker_county_code_variable = "x143" then
-				county_name = "Mcleod County"
-			elseif worker_county_code_variable = "x144" then
-				county_name = "Mahnomen County"
-			elseif worker_county_code_variable = "x145" then
-				county_name = "Marshall County"
-			elseif worker_county_code_variable = "x146" then
-				county_name = "Martin County"
-			elseif worker_county_code_variable = "x147" then
-				county_name = "Meeker County"
-			elseif worker_county_code_variable = "x148" then
-				county_name = "Mille Lacs County"
-			elseif worker_county_code_variable = "x149" then
-				county_name = "Morrison County"
-			elseif worker_county_code_variable = "x150" then
-				county_name = "Mower County"
-			elseif worker_county_code_variable = "x151" then
-				county_name = "Murray County"
-			elseif worker_county_code_variable = "x152" then
-				county_name = "Nicollet County"
-			elseif worker_county_code_variable = "x153" then
-				county_name = "Nobles County"
-			elseif worker_county_code_variable = "x154" then
-				county_name = "Norman County"
-			elseif worker_county_code_variable = "x155" then
-				county_name = "Olmsted County"
-			elseif worker_county_code_variable = "x156" then
-				county_name = "Otter Tail County"
-			elseif worker_county_code_variable = "x157" then
-				county_name = "Pennington County"
-			elseif worker_county_code_variable = "x158" then
-				county_name = "Pine County"
-			elseif worker_county_code_variable = "x159" then
-				county_name = "Pipestone County"
-			elseif worker_county_code_variable = "x160" then
-				county_name = "Polk County"
-			elseif worker_county_code_variable = "x161" then
-				county_name = "Pope County"
-			elseif worker_county_code_variable = "x162" then
-				county_name = "Ramsey County"
-			elseif worker_county_code_variable = "x163" then
-				county_name = "Red Lake County"
-			elseif worker_county_code_variable = "x164" then
-				county_name = "Redwood County"
-			elseif worker_county_code_variable = "x165" then
-				county_name = "Renville County"
-			elseif worker_county_code_variable = "x166" then
-				county_name = "Rice County"
-			elseif worker_county_code_variable = "x167" then
-				county_name = "Rock County"
-			elseif worker_county_code_variable = "x168" then
-				county_name = "Roseau County"
-			elseif worker_county_code_variable = "x169" then
-				county_name = "St. Louis County"
-			elseif worker_county_code_variable = "x170" then
-				county_name = "Scott County"
-			elseif worker_county_code_variable = "x171" then
-				county_name = "Sherburne County"
-			elseif worker_county_code_variable = "x172" then
-				county_name = "Sibley County"
-			elseif worker_county_code_variable = "x173" then
-				county_name = "Stearns County"
-			elseif worker_county_code_variable = "x174" then
-				county_name = "Steele County"
-			elseif worker_county_code_variable = "x175" then
-				county_name = "Stevens County"
-			elseif worker_county_code_variable = "x176" then
-				county_name = "Swift County"
-			elseif worker_county_code_variable = "x177" then
-				county_name = "Todd County"
-			elseif worker_county_code_variable = "x178" then
-				county_name = "Traverse County"
-			elseif worker_county_code_variable = "x179" then
-				county_name = "Wabasha County"
-			elseif worker_county_code_variable = "x180" then
-				county_name = "Wadena County"
-			elseif worker_county_code_variable = "x181" then
-				county_name = "Waseca County"
-			elseif worker_county_code_variable = "x182" then
-				county_name = "Washington County"
-			elseif worker_county_code_variable = "x183" then
-				county_name = "Watonwan County"
-			elseif worker_county_code_variable = "x184" then
-				county_name = "Wilkin County"
-			elseif worker_county_code_variable = "x185" then
-				county_name = "Winona County"
-			elseif worker_county_code_variable = "x186" then
-				county_name = "Wright County"
-			elseif worker_county_code_variable = "x187" then
-				county_name = "Yellow Medicine County"
-			elseif worker_county_code_variable = "x188" then
-				county_name = "Mille Lacs Band"
-			elseif worker_county_code_variable = "x192" then
-				county_name = "White Earth Nation"
-			end if
-		End If
-	End if
-End function
 
 Function write_bullet_and_variable_in_CASE_NOTE(bullet, variable)
 	If trim(variable) <> "" then
@@ -3610,35 +3910,9 @@ Function write_variable_in_TIKL(variable)
 	transmit
 End function
 
-'--------DEPRECIATED FUNCTIONS KEPT FOR COMPATIBILITY PURPOSES, THE NEW FUNCTIONS ARE INDICATED WITHIN THE OLD FUNCTIONS
-Function ERRR_screen_check 'Checks for error prone cases				'DEPRECIATED AS OF 01/20/2015.
-	EMReadScreen ERRR_check, 4, 2, 52	'Now included in NAVIGATE_TO_MAXIS_SCREEN
-	If ERRR_check = "ERRR" then transmit
-End Function
-
-Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
-	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
-End function
-
-Function navigate_to_screen(MAXIS_function, MAXIS_command)										'DEPRECIATED AS OF 03/09/2015.
-	call navigate_to_MAXIS_screen(MAXIS_function, MAXIS_command)
-End function
-
-Function write_editbox_in_case_note(bullet, variable, length_of_indent) 'DEPRECIATED AS OF 01/20/2015.
-	call write_bullet_and_variable_in_case_note(bullet, variable)
-End function
-
-Function write_new_line_in_case_note(variable)							'DEPRECIATED AS OF 01/20/2015.
-	call write_variable_in_CASE_NOTE(variable)
-End function
-
-Function write_new_line_in_SPEC_MEMO(variable_to_enter)					'DEPRECIATED AS OF 01/20/2015.
-	call write_variable_in_SPEC_MEMO(variable_to_enter)
-End function
-
 'write_panel_to_MAXIS comes from Krabappel
 Function write_panel_to_MAXIS_ABPS(abps_supp_coop,abps_gc_status)
-	call navigate_to_screen("STAT","PARE")							'Starts by creating an array of all the kids on PARE
+	call navigate_to_MAXIS_screen("STAT","PARE")							'Starts by creating an array of all the kids on PARE
 	EMReadScreen abps_pare_check, 1, 2, 78
 	If abps_pare_check = "0" then
 		MsgBox "No PARE exists. Exiting Creating ABPS."
@@ -3660,7 +3934,7 @@ Function write_panel_to_MAXIS_ABPS(abps_supp_coop,abps_gc_status)
 				row = 8
 			End If
 		Loop until child_check = "__"
-		call navigate_to_screen("STAT","ABPS")						'Navigates to ABPS to enter kids in
+		call navigate_to_MAXIS_screen("STAT","ABPS")						'Navigates to ABPS to enter kids in
 		call create_panel_if_nonexistent
 		abps_child_list = split(child_list, ",")
 		row = 15
@@ -3689,7 +3963,7 @@ Function write_panel_to_MAXIS_ABPS(abps_supp_coop,abps_gc_status)
 End Function
 
 Function write_panel_to_MAXIS_ACCT(acct_type, acct_numb, acct_location, acct_balance, acct_bal_ver, acct_date, acct_withdraw, acct_cash_count, acct_snap_count, acct_HC_count, acct_GRH_count, acct_IV_count, acct_joint_owner, acct_share_ratio, acct_interest_date_mo, acct_interest_date_yr)
-	Call Navigate_to_screen("STAT", "ACCT")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "ACCT")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emwritescreen acct_type, 6, 44  'enters the account type code
 	Emwritescreen acct_numb, 7, 44  'enters the account number
@@ -3713,7 +3987,7 @@ Function write_panel_to_MAXIS_ACCT(acct_type, acct_numb, acct_location, acct_bal
 End Function
 
 FUNCTION write_panel_to_MAXIS_ACUT(ACUT_shared, ACUT_heat, ACUT_air, ACUT_electric, ACUT_fuel, ACUT_garbage, ACUT_water, ACUT_sewer, ACUT_other, ACUT_phone, ACUT_heat_verif, ACUT_air_verif, ACUT_electric_verif, ACUT_fuel_verif, ACUT_garbage_verif, ACUT_water_verif, ACUT_sewer_verif, ACUT_other_verif)
-	call navigate_to_screen("STAT", "ACUT")
+	call navigate_to_MAXIS_screen("STAT", "ACUT")
 	call create_panel_if_nonexistent
 		EMWritescreen ACUT_shared, 6, 42
 		EMWritescreen ACUT_heat, 10, 61
@@ -3738,8 +4012,9 @@ end function
 
 '---This function writes the information for BILS.
 FUNCTION write_panel_to_MAXIS_BILS(bils_1_ref_num, bils_1_serv_date, bils_1_serv_type, bils_1_gross_amt, bils_1_third_party, bils_1_verif, bils_1_bils_type, bils_2_ref_num, bils_2_serv_date, bils_2_serv_type, bils_2_gross_amt, bils_2_third_party, bils_2_verif, bils_2_bils_type, bils_3_ref_num, bils_3_serv_date, bils_3_serv_type, bils_3_gross_amt, bils_3_third_party, bils_3_verif, bils_3_bils_type, bils_4_ref_num, bils_4_serv_date, bils_4_serv_type, bils_4_gross_amt, bils_4_third_party, bils_4_verif, bils_4_bils_type, bils_5_ref_num, bils_5_serv_date, bils_5_serv_type, bils_5_gross_amt, bils_5_third_party, bils_5_verif, bils_5_bils_type, bils_6_ref_num, bils_6_serv_date, bils_6_serv_type, bils_6_gross_amt, bils_6_third_party, bils_6_verif, bils_6_bils_type, bils_7_ref_num, bils_7_serv_date, bils_7_serv_type, bils_7_gross_amt, bils_7_third_party, bils_7_verif, bils_7_bils_type, bils_8_ref_num, bils_8_serv_date, bils_8_serv_type, bils_8_gross_amt, bils_8_third_party, bils_8_verif, bils_8_bils_type, bils_9_ref_num, bils_9_serv_date, bils_9_serv_type, bils_9_gross_amt, bils_9_third_party, bils_9_verif, bils_9_bils_type)
-	CALL navigate_to_screen("STAT", "BILS")
-	ERRR_screen_check
+	CALL navigate_to_MAXIS_screen("STAT", "BILS")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	EMReadScreen num_of_BILS, 1, 2, 78
 	IF num_of_BILS = "0" THEN
 		EMWriteScreen "NN", 20, 79
@@ -3906,7 +4181,7 @@ END FUNCTION
 
 '---This function writes using the variables read off of the specialized excel template to the busi panel in MAXIS
 Function write_panel_to_MAXIS_BUSI(busi_type, busi_start_date, busi_end_date, busi_cash_total_retro, busi_cash_total_prosp, busi_cash_total_ver, busi_IV_total_prosp, busi_IV_total_ver, busi_snap_total_retro, busi_snap_total_prosp, busi_snap_total_ver, busi_hc_total_prosp_a, busi_hc_total_ver_a, busi_hc_total_prosp_b, busi_hc_total_ver_b, busi_cash_exp_retro, busi_cash_exp_prosp, busi_cash_exp_ver, busi_IV_exp_prosp, busi_IV_exp_ver, busi_snap_exp_retro, busi_snap_exp_prosp, busi_snap_exp_ver, busi_hc_exp_prosp_a, busi_hc_exp_ver_a, busi_hc_exp_prosp_b, busi_hc_exp_ver_b, busi_retro_hours, busi_prosp_hours, busi_hc_total_est_a, busi_hc_total_est_b, busi_hc_exp_est_a, busi_hc_exp_est_b, busi_hc_hours_est)
-	Call navigate_to_screen("STAT", "BUSI")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "BUSI")  'navigates to the stat panel
 	Emwritescreen reference_number, 20, 76
 	transmit
 
@@ -4032,7 +4307,7 @@ Function write_panel_to_MAXIS_BUSI(busi_type, busi_start_date, busi_end_date, bu
 end function
 
 Function write_panel_to_MAXIS_CARS(cars_type, cars_year, cars_make, cars_model, cars_trade_in, cars_loan, cars_value_source, cars_ownership_ver, cars_amount_owed, cars_amount_owed_ver, cars_date, cars_use, cars_HC_benefit, cars_joint_owner, cars_share_ratio)
-	Call Navigate_to_screen("STAT", "CARS")  'navigates to the stat screen
+	Call navigate_to_MAXIS_screen("STAT", "CARS")  'navigates to the stat screen
 	call create_panel_if_nonexistent
 	Emwritescreen cars_type, 6, 43  'enters the vehicle type
 	Emwritescreen cars_year, 8, 31  'enters the vehicle year
@@ -4054,7 +4329,7 @@ End Function
 
 '---This function writes using the variables read off of the specialized excel template to the cash panel in MAXIS
 Function write_panel_to_MAXIS_CASH(cash_amount)
-	Call navigate_to_screen("STAT", "CASH")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "CASH")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emwritescreen cash_amount, 8, 39
 End Function
@@ -4062,7 +4337,8 @@ End Function
 '---This function writes using the variables read off of the specialized excel template to the COEX panel in MAXIS.
 FUNCTION write_panel_to_MAXIS_COEX(retro_support, prosp_support, support_verif, retro_alimony, prosp_alimony, alimony_verif, retro_tax_dep, prosp_tax_dep, tax_dep_verif, retro_other, prosp_other, other_verif, change_in_circum, hc_exp_support, hc_exp_alimony, hc_exp_tax_dep, hc_exp_other)
 	CALL navigate_to_MAXIS_screen("STAT", "COEX")
-	ERRR_screen_check
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	EMWriteScreen reference_number, 20, 76
 	transmit
 
@@ -4111,7 +4387,7 @@ END FUNCTION
 
 
 FUNCTION write_panel_to_MAXIS_DCEX(DCEX_provider, DCEX_reason, DCEX_subsidy, DCEX_child_number1, DCEX_child_number1_ver, DCEX_child_number1_retro, DCEX_child_number1_pro, DCEX_child_number2, DCEX_child_number2_ver, DCEX_child_number2_retro, DCEX_child_number2_pro, DCEX_child_number3, DCEX_child_number3_ver, DCEX_child_number3_retro, DCEX_child_number3_pro, DCEX_child_number4, DCEX_child_number4_ver, DCEX_child_number4_retro, DCEX_child_number4_pro, DCEX_child_number5, DCEX_child_number5_ver, DCEX_child_number5_retro, DCEX_child_number5_pro, DCEX_child_number6, DCEX_child_number6_ver, DCEX_child_number6_retro, DCEX_child_number6_pro)
-	call navigate_to_screen("STAT", "DCEX")
+	call navigate_to_MAXIS_screen("STAT", "DCEX")
 	EMWriteScreen reference_number, 20, 76
 	transmit
 
@@ -4196,7 +4472,7 @@ FUNCTION write_panel_to_MAXIS_DCEX(DCEX_provider, DCEX_reason, DCEX_subsidy, DCE
 End function
 
 FUNCTION write_panel_to_MAXIS_DFLN(conv_dt_1, conv_juris_1, conv_st_1, conv_dt_2, conv_juris_2, conv_st_2, rnd_test_dt_1, rnd_test_provider_1, rnd_test_result_1, rnd_test_dt_2, rnd_test_provider_2, rnd_test_result_2)
-	CALL navigate_to_screen("STAT", "DFLN")
+	CALL navigate_to_MAXIS_screen("STAT", "DFLN")
 	EMReadScreen num_of_DFLN, 1, 2, 78
 	IF num_of_DFLN = "0" THEN
 		EMWriteScreen reference_number, 20, 76
@@ -4227,7 +4503,7 @@ FUNCTION write_panel_to_MAXIS_DFLN(conv_dt_1, conv_juris_1, conv_st_1, conv_dt_2
 END FUNCTION
 
 FUNCTION write_panel_to_MAXIS_DIET(DIET_mfip_1, DIET_mfip_1_ver, DIET_mfip_2, DIET_mfip_2_ver, DIET_msa_1, DIET_msa_1_ver, DIET_msa_2, DIET_msa_2_ver, DIET_msa_3, DIET_msa_3_ver, DIET_msa_4, DIET_msa_4_ver)
-	call navigate_to_screen("STAT", "DIET")
+	call navigate_to_MAXIS_screen("STAT", "DIET")
 	EMWriteScreen reference_number, 20, 76
 	EMWriteScreen "NN", 20, 79
 	transmit
@@ -4249,7 +4525,7 @@ END FUNCTION
 
 '---This function writes using the variables read off of the specialized excel template to the disa panel in MAXIS
 Function write_panel_to_MAXIS_DISA(disa_begin_date, disa_end_date, disa_cert_begin, disa_cert_end, disa_wavr_begin, disa_wavr_end, disa_grh_begin, disa_grh_end, disa_cash_status, disa_cash_status_ver, disa_snap_status, disa_snap_status_ver, disa_hc_status, disa_hc_status_ver, disa_waiver, disa_drug_alcohol)
-	Call navigate_to_screen("STAT", "DISA")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "DISA")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	IF disa_begin_date <> "" THEN
 		call create_MAXIS_friendly_date(disa_begin_date, 0, 6, 47)  'enters the disability begin date in a MAXIS friendly format. mm/dd/yy
@@ -4295,8 +4571,9 @@ Function write_panel_to_MAXIS_DISA(disa_begin_date, disa_end_date, disa_cert_beg
 End Function
 
 Function write_panel_to_MAXIS_DSTT(DSTT_ongoing_income, DSTT_HH_income_stop_date, DSTT_income_expected_amt)
-	call navigate_to_screen("STAT", "DSTT")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "DSTT")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	EMWriteScreen DSTT_ongoing_income, 6, 69
 	IF HH_income_stop_date <> "" THEN call create_MAXIS_friendly_date(HH_income_stop_date, 0, 9, 69)
@@ -4305,7 +4582,7 @@ End function
 
 FUNCTION write_panel_to_MAXIS_EATS(eats_together, eats_boarder, eats_group_one, eats_group_two, eats_group_three)
 	IF reference_number = "01" THEN
-		call navigate_to_screen("STAT", "EATS")
+		call navigate_to_MAXIS_screen("STAT", "EATS")
 		call create_panel_if_nonexistent
 		EMWriteScreen eats_together, 4, 72
 		EMWriteScreen eats_boarder, 5, 72
@@ -4342,8 +4619,9 @@ FUNCTION write_panel_to_MAXIS_EATS(eats_together, eats_boarder, eats_group_one, 
 END FUNCTION
 
 Function write_panel_to_MAXIS_EMMA(EMMA_medical_emergency, EMMA_health_consequence, EMMA_verification, EMMA_begin_date, EMMA_end_date)
-	call navigate_to_screen("STAT", "EMMA")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "EMMA")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	EMWriteScreen EMMA_medical_emergency, 6, 46
 	EMWriteScreen EMMA_health_consequence, 8, 46
@@ -4353,7 +4631,7 @@ Function write_panel_to_MAXIS_EMMA(EMMA_medical_emergency, EMMA_health_consequen
 End function
 
 FUNCTION write_panel_to_MAXIS_EMPS(EMPS_orientation_date, EMPS_orientation_attended, EMPS_good_cause, EMPS_sanc_begin, EMPS_sanc_end, EMPS_memb_at_home, EMPS_care_family, EMPS_crisis, EMPS_hard_employ, EMPS_under1, EMPS_DWP_date)
-	call navigate_to_screen("STAT", "EMPS")
+	call navigate_to_MAXIS_screen("STAT", "EMPS")
 	call create_panel_if_nonexistent
 	If EMPS_orientation_date <> "" then call create_MAXIS_friendly_date(EMPS_orientation_date, 0, 5, 39) 'enter orientation date
 	EMWritescreen left(EMPS_orientation_attended, 1), 5, 65
@@ -4403,8 +4681,9 @@ FUNCTION write_panel_to_MAXIS_EMPS(EMPS_orientation_date, EMPS_orientation_atten
 End Function
 
 Function write_panel_to_MAXIS_FACI(FACI_vendor_number, FACI_name, FACI_type, FACI_FS_eligible, FACI_FS_facility_type, FACI_date_in, FACI_date_out)
-	call navigate_to_screen("STAT", "FACI")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "FACI")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	EMWriteScreen FACI_vendor_number, 5, 43
 	EMWriteScreen FACI_name, 6, 43
@@ -4425,7 +4704,8 @@ End function
 '---The custom function to pull FMED information from the Excel file. This function can handle up to 4 FMED rows per client.
 FUNCTION write_panel_to_MAXIS_FMED(FMED_medical_mileage, FMED_1_type, FMED_1_verif, FMED_1_ref_num, FMED_1_category, FMED_1_begin, FMED_1_end, FMED_1_amount, FMED_2_type, FMED_2_verif, FMED_2_ref_num, FMED_2_category, FMED_2_begin, FMED_2_end, FMED_2_amount, FMED_3_type, FMED_3_verif, FMED_3_ref_num, FMED_3_category, FMED_3_begin, FMED_3_end, FMED_3_amount, FMED_4_type, FMED_4_verif, FMED_4_ref_num, FMED_4_category, FMED_4_begin, FMED_4_end, FMED_4_amount)
 	CALL navigate_to_MAXIS_screen("STAT", "FMED")
-	ERRR_screen_check
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	EMReadScreen num_of_FMED, 1, 2, 78
 	IF num_of_FMED = "0" THEN
 		EMWriteScreen "NN", 20, 79
@@ -4582,7 +4862,7 @@ FUNCTION write_panel_to_MAXIS_FMED(FMED_medical_mileage, FMED_1_type, FMED_1_ver
 END FUNCTION
 
 Function write_panel_to_MAXIS_HCRE(hcre_appl_addnd_date_input,hcre_retro_months_input,hcre_recvd_by_service_date_input)
-	call navigate_to_screen("STAT","HCRE")
+	call navigate_to_MAXIS_screen("STAT","HCRE")
 	call create_panel_if_nonexistent
 	'Converting the Appl Addendum Date into a usable format
 	call MAXIS_dater(hcre_appl_addnd_date_input, hcre_appl_addnd_date_output, "HCRE Addendum Date")
@@ -4610,7 +4890,7 @@ Function write_panel_to_MAXIS_HCRE(hcre_appl_addnd_date_input,hcre_retro_months_
 End Function
 
 FUNCTION write_panel_to_MAXIS_HEST(HEST_FS_choice_date, HEST_first_month, HEST_heat_air_retro, HEST_electric_retro, HEST_phone_retro, HEST_heat_air_pro, HEST_electric_pro, HEST_phone_pro)
-	call navigate_to_screen("STAT", "HEST")
+	call navigate_to_MAXIS_screen("STAT", "HEST")
 	call create_panel_if_nonexistent
 	Emwritescreen "01", 6, 40
 	call create_MAXIS_friendly_date(HEST_FS_choice_date, 0, 7, 40)
@@ -4632,8 +4912,9 @@ FUNCTION write_panel_to_MAXIS_HEST(HEST_FS_choice_date, HEST_first_month, HEST_h
 End function
 
 Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG_status_date, IMIG_status_ver, IMIG_status_LPR_adj_from, IMIG_nationality, IMIG_40_soc_sec, IMIG_40_soc_sec_verif, IMIG_battered_spouse_child, IMIG_battered_spouse_child_verif, IMIG_military_status, IMIG_military_status_verif, IMIG_hmong_lao_nat_amer, IMIG_st_prog_esl_ctzn_coop, IMIG_st_prog_esl_ctzn_coop_verif, IMIG_fss_esl_skills_training)
-	call navigate_to_screen("STAT", "IMIG")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "IMIG")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	call create_MAXIS_friendly_date(APPL_date, 0, 5, 45)						'Writes actual date, needs to add 2000 as this is weirdly a 4 digit year
 	EMWriteScreen datepart("yyyy", APPL_date), 5, 51
@@ -4664,7 +4945,7 @@ Function write_panel_to_MAXIS_IMIG(IMIG_imigration_status, IMIG_entry_date, IMIG
 End function
 
 Function write_panel_to_MAXIS_INSA(insa_pers_coop_ohi, insa_good_cause_status, insa_good_cause_cliam_date, insa_good_cause_evidence, insa_coop_cost_effect, insa_insur_name, insa_prescrip_drug_cover, insa_prescrip_end_date, insa_persons_covered)
-	call navigate_to_screen("STAT","INSA")
+	call navigate_to_MAXIS_screen("STAT","INSA")
 	call create_panel_if_nonexistent
 
 	EMWriteScreen insa_pers_coop_ohi, 4, 62
@@ -4696,7 +4977,7 @@ Function write_panel_to_MAXIS_INSA(insa_pers_coop_ohi, insa_good_cause_status, i
 End Function
 
 FUNCTION write_panel_to_MAXIS_JOBS(jobs_number, jobs_inc_type, jobs_inc_verif, jobs_employer_name, jobs_inc_start, jobs_wkly_hrs, jobs_hrly_wage, jobs_pay_freq)
-	call navigate_to_screen("STAT", "JOBS")
+	call navigate_to_MAXIS_screen("STAT", "JOBS")
 	EMWriteScreen reference_number, 20, 76
 	EMWriteScreen jobs_number, 20, 79
 	transmit
@@ -4806,7 +5087,12 @@ FUNCTION write_panel_to_MAXIS_JOBS(jobs_number, jobs_inc_type, jobs_inc_verif, j
 
 	'=====determines if the benefit month is current month + 1 and dumps information into the HC income estimator
 	IF (bene_month * 1) = (datepart("M", DATE) + 1) THEN		'<===== "bene_month * 1" is needed to convert bene_month from a string to numeric.
-		EMWriteScreen "X", 19, 54
+		EMReadScreen HC_income_est_check, 3, 19, 63 'reading to find the HC income estimator is moving 6/1/16, to account for if it only affects future months we are reading to find the HC inc EST
+		IF HC_income_est_check = "Est" Then 'this is the old position
+			EMWriteScreen "x", 19, 54
+		ELSE								'this is the new position
+			EMWriteScreen "x", 19, 48
+		END IF
 		transmit
 
 		DO
@@ -4820,8 +5106,9 @@ FUNCTION write_panel_to_MAXIS_JOBS(jobs_number, jobs_inc_type, jobs_inc_verif, j
 END FUNCTION
 
 Function write_panel_to_MAXIS_MEDI(SSN_first, SSN_mid, SSN_last, MEDI_claim_number_suffix, MEDI_part_A_premium, MEDI_part_B_premium, MEDI_part_A_begin_date, MEDI_part_B_begin_date, MEDI_apply_prem_to_spdn, MEDI_apply_prem_end_date)
-	call navigate_to_screen("STAT", "MEDI")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "MEDI")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	EMWriteScreen SSN_first, 6, 44				'Next three lines pulled
 	EMWriteScreen SSN_mid, 6, 48
@@ -4842,7 +5129,7 @@ End function
 
 FUNCTION write_panel_to_MAXIS_MMSA(mmsa_liv_arr, mmsa_cont_elig, mmsa_spous_inc, mmsa_shared_hous)
 	IF mmsa_liv_arr <> "" THEN
-		call navigate_to_screen("STAT", "MMSA")
+		call navigate_to_MAXIS_screen("STAT", "MMSA")
 		EMWriteScreen "NN", 20, 79
 		transmit
 		EMWriteScreen mmsa_liv_arr, 7, 54
@@ -4854,7 +5141,7 @@ FUNCTION write_panel_to_MAXIS_MMSA(mmsa_liv_arr, mmsa_cont_elig, mmsa_spous_inc,
 END FUNCTION
 
 Function write_panel_to_MAXIS_MSUR(msur_begin_date)
-	call navigate_to_screen("STAT","MSUR")
+	call navigate_to_MAXIS_screen("STAT","MSUR")
 	call create_panel_if_nonexistent
 
 	'msur_begin_date This is the date MSUR began for this client
@@ -4875,7 +5162,7 @@ End Function
 
 '---This function writes using the variables read off of the specialized excel template to the othr panel in MAXIS
 Function write_panel_to_MAXIS_OTHR(othr_type, othr_cash_value, othr_cash_value_ver, othr_owed, othr_owed_ver, othr_date, othr_cash_count, othr_SNAP_count, othr_HC_count, othr_IV_count, othr_joint_owner, othr_share_ratio)
-	Call navigate_to_screen("STAT", "OTHR")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "OTHR")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emwritescreen othr_type, 6, 40  'enters other asset type
 	IF othr_cash_value = "" THEN othr_cash_value = 0
@@ -4895,7 +5182,7 @@ Function write_panel_to_MAXIS_OTHR(othr_type, othr_cash_value, othr_cash_value_v
 End Function
 
 FUNCTION write_panel_to_MAXIS_PARE(appl_date, reference_number, PARE_child_1, PARE_child_1_relation, PARE_child_1_verif, PARE_child_2, PARE_child_2_relation, PARE_child_2_verif, PARE_child_3, PARE_child_3_relation, PARE_child_3_verif, PARE_child_4, PARE_child_4_relation, PARE_child_4_verif, PARE_child_5, PARE_child_5_relation, PARE_child_5_verif, PARE_child_6, PARE_child_6_relation, PARE_child_6_verif)
-	Call navigate_to_screen("STAT", "PARE")
+	Call navigate_to_MAXIS_screen("STAT", "PARE")
 	CALL write_value_and_transmit(reference_number, 20, 76)
 	EMReadScreen num_of_PARE, 1, 2, 78
 	IF num_of_PARE = "0" THEN
@@ -4935,7 +5222,7 @@ end function
 
 '---This function writes using the variables read off of the specialized excel template to the pben panel in MAXIS
 Function write_panel_to_MAXIS_PBEN(pben_referal_date, pben_type, pben_appl_date, pben_appl_ver, pben_IAA_date, pben_disp)
-	Call navigate_to_screen("STAT", "PBEN")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "PBEN")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emreadscreen pben_row_check, 2, 8, 24  'reads the MAXIS screen to find out if the PBEN row has already been used.
 	If pben_row_check = "  " THEN   'if the row is blank it enters it in the 8th row.
@@ -4971,7 +5258,7 @@ Function write_panel_to_MAXIS_PBEN(pben_referal_date, pben_type, pben_appl_date,
 End Function
 
 Function write_panel_to_MAXIS_PDED(PDED_wid_deduction, PDED_adult_child_disregard, PDED_wid_disregard, PDED_unea_income_deduction_reason, PDED_unea_income_deduction_value, PDED_earned_income_deduction_reason, PDED_earned_income_deduction_value, PDED_ma_epd_inc_asset_limit, PDED_guard_fee, PDED_rep_payee_fee, PDED_other_expense, PDED_shel_spcl_needs, PDED_excess_need, PDED_restaurant_meals)
-	call navigate_to_screen("STAT","PDED")
+	call navigate_to_MAXIS_screen("STAT","PDED")
 	call create_panel_if_nonexistent
 
 	'Disa Widow/ers Deductionpded_shel_spcl_needs
@@ -5061,7 +5348,7 @@ Function write_panel_to_MAXIS_PDED(PDED_wid_deduction, PDED_adult_child_disregar
 End Function
 
 FUNCTION write_panel_to_MAXIS_PREG(PREG_conception_date, PREG_conception_date_ver, PREG_third_trimester_ver, PREG_due_date, PREG_multiple_birth)
-	call navigate_to_screen("STAT", "PREG")
+	call navigate_to_MAXIS_screen("STAT", "PREG")
 	call create_panel_if_nonexistent
 	EMWritescreen "NN", 20, 79
 	transmit
@@ -5077,7 +5364,7 @@ end function
 
 '---This function writes using the variables read off of the specialized excel template to the rbic panel in MAXIS
 Function write_panel_to_MAXIS_RBIC(rbic_type, rbic_start_date, rbic_end_date, rbic_group_1, rbic_retro_income_group_1, rbic_prosp_income_group_1, rbic_ver_income_group_1, rbic_group_2, rbic_retro_income_group_2, rbic_prosp_income_group_2, rbic_ver_income_group_2, rbic_group_3, rbic_retro_income_group_3, rbic_prosp_income_group_3, rbic_ver_income_group_3, rbic_retro_hours, rbic_prosp_hours, rbic_exp_type_1, rbic_exp_retro_1, rbic_exp_prosp_1, rbic_exp_ver_1, rbic_exp_type_2, rbic_exp_retro_2, rbic_exp_prosp_2, rbic_exp_ver_2)
-	call navigate_to_screen("STAT", "RBIC")  'navigates to the stat panel
+	call navigate_to_MAXIS_screen("STAT", "RBIC")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	EMwritescreen rbic_type, 5, 44  'enters rbic type code
 	call create_MAXIS_friendly_date(rbic_start_date, 0, 6, 44)  'creates and enters a MAXIS friend date in the format mm/dd/yy for rbic start date
@@ -5126,7 +5413,7 @@ end function
 
 '---This function writes using the variables read off of the specialized excel template to the rest panel in MAXIS
 Function write_panel_to_MAXIS_REST(rest_type, rest_type_ver, rest_market, rest_market_ver, rest_owed, rest_owed_ver, rest_date, rest_status, rest_joint, rest_share_ratio, rest_agreement_date)
-	Call navigate_to_screen("STAT", "REST")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "REST")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emwritescreen rest_type, 6, 39  'enters residence type
 	Emwritescreen rest_type_ver, 6, 62  'enters verification of residence type
@@ -5176,7 +5463,7 @@ End function
 
 '---This function writes using the variables read off of the specialized excel template to the secu panel in MAXIS
 Function write_panel_to_MAXIS_SECU(secu_type, secu_pol_numb, secu_name, secu_cash_val, secu_date, secu_cash_ver, secu_face_val, secu_withdraw, secu_cash_count, secu_SNAP_count, secu_HC_count, secu_GRH_count, secu_IV_count, secu_joint, secu_share_ratio)
-	Call navigate_to_screen("STAT", "SECU")  'navigates to the stat panel
+	Call navigate_to_MAXIS_screen("STAT", "SECU")  'navigates to the stat panel
 	call create_panel_if_nonexistent
 	Emwritescreen secu_type, 6, 50  'enters security type
 	Emwritescreen secu_pol_numb, 7, 50  'enters policy number
@@ -5197,7 +5484,7 @@ Function write_panel_to_MAXIS_SECU(secu_type, secu_pol_numb, secu_name, secu_cas
 End Function
 
 FUNCTION write_panel_to_MAXIS_SHEL(SHEL_subsidized, SHEL_shared, SHEL_paid_to, SHEL_rent_retro, SHEL_rent_retro_ver, SHEL_rent_pro, SHEL_rent_pro_ver, SHEL_lot_rent_retro, SHEL_lot_rent_retro_ver, SHEL_lot_rent_pro, SHEL_lot_rent_pro_ver, SHEL_mortgage_retro, SHEL_mortgage_retro_ver, SHEL_mortgage_pro, SHEL_mortgage_pro_ver, SHEL_insur_retro, SHEL_insur_retro_ver, SHEL_insur_pro, SHEL_insur_pro_ver, SHEL_taxes_retro, SHEL_taxes_retro_ver, SHEL_taxes_pro, SHEL_taxes_pro_ver, SHEL_room_retro, SHEL_room_retro_ver, SHEL_room_pro, SHEL_room_pro_ver, SHEL_garage_retro, SHEL_garage_retro_ver, SHEL_garage_pro, SHEL_garage_pro_ver, SHEL_subsidy_retro, SHEL_subsidy_retro_ver, SHEL_subsidy_pro, SHEL_subsidy_pro_ver)
-	call navigate_to_screen("STAT", "SHEL")
+	call navigate_to_MAXIS_screen("STAT", "SHEL")
 	call create_panel_if_nonexistent
 	EMWritescreen SHEL_subsidized, 6, 46
 	EMWritescreen SHEL_shared, 6, 64
@@ -5238,7 +5525,7 @@ FUNCTION write_panel_to_MAXIS_SHEL(SHEL_subsidized, SHEL_shared, SHEL_paid_to, S
 end function
 
 FUNCTION write_panel_to_MAXIS_SIBL(SIBL_group_1, SIBL_group_2, SIBL_group_3)
-	call navigate_to_screen("STAT", "SIBL")
+	call navigate_to_MAXIS_screen("STAT", "SIBL")
 	EMReadScreen num_of_SIBL, 1, 2, 78
 	IF num_of_SIBL = "0" THEN
 		EMWriteScreen "NN", 20, 79
@@ -5281,8 +5568,9 @@ FUNCTION write_panel_to_MAXIS_SIBL(SIBL_group_1, SIBL_group_2, SIBL_group_3)
 end function
 
 Function write_panel_to_MAXIS_SPON(SPON_type, SPON_ver, SPON_name, SPON_state)
-	call navigate_to_screen("STAT", "SPON")
-	call ERRR_screen_check
+	call navigate_to_MAXIS_screen("STAT", "SPON")
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits
 	call create_panel_if_nonexistent
 	EMWriteScreen SPON_type, 6, 38
 	EMWriteScreen SPON_ver, 6, 62
@@ -5366,7 +5654,7 @@ Function write_panel_to_MAXIS_STIN(STIN_type_1, STIN_amt_1, STIN_avail_date_1, S
 End function
 
 Function write_panel_to_MAXIS_STWK(STWK_empl_name, STWK_wrk_stop_date, STWK_wrk_stop_date_verif, STWK_inc_stop_date, STWK_refused_empl_yn, STWK_vol_quit, STWK_ref_empl_date, STWK_gc_cash, STWK_gc_grh, STWK_gc_fs, STWK_fs_pwe, STWK_maepd_ext)
-	call navigate_to_screen("STAT","STWK")
+	call navigate_to_MAXIS_screen("STAT","STWK")
 	call create_panel_if_nonexistent
 
 	EMWriteScreen stwk_empl_name, 6, 46
@@ -5385,7 +5673,7 @@ Function write_panel_to_MAXIS_STWK(STWK_empl_name, STWK_wrk_stop_date, STWK_wrk_
 End Function
 
 FUNCTION write_panel_to_MAXIS_TYPE_PROG_REVW(appl_date, type_cash_yn, type_hc_yn, type_fs_yn, prog_mig_worker, revw_ar_or_ir, revw_exempt)
-	call navigate_to_screen("STAT", "TYPE")
+	call navigate_to_MAXIS_screen("STAT", "TYPE")
 	IF reference_number = "01" THEN
 		EMWriteScreen "NN", 20, 79
 		transmit
@@ -5427,7 +5715,7 @@ FUNCTION write_panel_to_MAXIS_TYPE_PROG_REVW(appl_date, type_cash_yn, type_hc_yn
 	transmit		'<===== when reference_number = "01" this transmit will navigate to PROG, else, it will navigate to STAT/WRAP
 
 	IF reference_number = "01" THEN		'<===== only accesses PROG & REVW if reference_number = "01"
-		call navigate_to_screen("STAT", "PROG")
+		call navigate_to_MAXIS_screen("STAT", "PROG")
 		EMWriteScreen "NN", 20, 71
 		transmit
 			IF type_cash_yn = "Y" THEN
@@ -5449,7 +5737,7 @@ FUNCTION write_panel_to_MAXIS_TYPE_PROG_REVW(appl_date, type_cash_yn, type_hc_yn
 			EMWriteScreen mig_worker, 18, 67
 			transmit
 
-		call navigate_to_screen("STAT", "REVW")
+		call navigate_to_MAXIS_screen("STAT", "REVW")
 		EMWriteScreen "NN", 20, 71
 		transmit
 			IF type_cash_yn = "Y" THEN
@@ -5487,7 +5775,7 @@ FUNCTION write_panel_to_MAXIS_TYPE_PROG_REVW(appl_date, type_cash_yn, type_hc_yn
 END FUNCTION
 
 FUNCTION write_panel_to_MAXIS_UNEA(unea_number, unea_inc_type, unea_inc_verif, unea_claim_suffix, unea_start_date, unea_pay_freq, unea_inc_amount, ssn_first, ssn_mid, ssn_last)
-	call navigate_to_screen("STAT", "UNEA")
+	call navigate_to_MAXIS_screen("STAT", "UNEA")
 	PF10
 	EMWriteScreen reference_number, 20, 76
 	EMWriteScreen unea_number, 20, 79
@@ -5609,7 +5897,8 @@ END FUNCTION
 
 FUNCTION write_panel_to_MAXIS_WKEX(program, fed_tax_retro, fed_tax_prosp, fed_tax_verif, state_tax_retro, state_tax_prosp, state_tax_verif, fica_retro, fica_prosp, fica_verif, tran_retro, tran_prosp, tran_verif, tran_imp_rel, meals_retro, meals_prosp, meals_verif, meals_imp_rel, uniforms_retro, uniforms_prosp, uniforms_verif, uniforms_imp_rel, tools_retro, tools_prosp, tools_verif, tools_imp_rel, dues_retro, dues_prosp, dues_verif, dues_imp_rel, othr_retro, othr_prosp, othr_verif, othr_imp_rel, HC_Exp_Fed_Tax, HC_Exp_State_Tax, HC_Exp_FICA, HC_Exp_Tran, HC_Exp_Tran_imp_rel, HC_Exp_Meals, HC_Exp_Meals_Imp_Rel, HC_Exp_Uniforms, HC_Exp_Uniforms_Imp_Rel, HC_Exp_Tools, HC_Exp_Tools_Imp_Rel, HC_Exp_Dues, HC_Exp_Dues_Imp_Rel, HC_Exp_Othr, HC_Exp_Othr_Imp_Rel)
 	CALL navigate_to_MAXIS_screen("STAT", "WKEX")
-	ERRR_screen_check
+	EMReadScreen ERRR_check, 4, 2, 52			'Checking for the ERRR screen
+	If ERRR_check = "ERRR" then transmit		'If the ERRR screen is found, it transmits0
 
 	EMWriteScreen reference_number, 20, 76
 	transmit
@@ -5692,7 +5981,7 @@ FUNCTION write_panel_to_MAXIS_WKEX(program, fed_tax_retro, fed_tax_prosp, fed_ta
 END FUNCTION
 
 FUNCTION write_panel_to_MAXIS_WREG(wreg_fs_pwe, wreg_fset_status, wreg_defer_fs, wreg_fset_orientation_date, wreg_fset_sanction_date, wreg_num_sanctions, wreg_abawd_status, wreg_ga_basis)
-	call navigate_to_screen("STAT", "WREG")
+	call navigate_to_MAXIS_screen("STAT", "WREG")
 	call create_panel_if_nonexistent
 
 	EMWriteScreen wreg_fs_pwe, 6, 68
@@ -5707,6 +5996,47 @@ FUNCTION write_panel_to_MAXIS_WREG(wreg_fs_pwe, wreg_fset_status, wreg_defer_fs,
 	transmit
 END FUNCTION
 
+'--------DEPRECIATED FUNCTIONS KEPT FOR COMPATIBILITY PURPOSES, THE NEW FUNCTIONS ARE INDICATED WITHIN THE OLD FUNCTIONS
+'----------------------------DEPRECIATED FUNCTIONS ARE TO BE REMOVED IN THE JUNE 2016 RELEASE
+
+Function ERRR_screen_check 'Checks for error prone cases				'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses ERRR_screen_check, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	EMReadScreen ERRR_check, 4, 2, 52	'Now included in NAVIGATE_TO_MAXIS_SCREEN
+	If ERRR_check = "ERRR" then transmit
+End Function
+
+Function maxis_check_function											'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses maxis_check_function, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	call check_for_MAXIS(True)	'Always true, because the original function always exited, and this needs to match the original function for reverse compatibility reasons.
+End function
+
+Function navigate_to_screen(MAXIS_function, MAXIS_command)				'DEPRECIATED AS OF 03/09/2015.
+	veronica_message = MsgBox ("This script uses navigate_to_screen, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	call navigate_to_MAXIS_screen(MAXIS_function, MAXIS_command)
+End function
+
+Function write_editbox_in_case_note(bullet, variable, length_of_indent) 'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses write_editbox_in_case_note, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	call write_bullet_and_variable_in_case_note(bullet, variable)
+End function
+
+Function write_new_line_in_case_note(variable)							'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses write_new_line_in_case_note, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	call write_variable_in_CASE_NOTE(variable)
+End function
+
+Function write_new_line_in_SPEC_MEMO(variable_to_enter)					'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses write_new_line_in_SPEC_MEMO, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+	call write_variable_in_SPEC_MEMO(variable_to_enter)
+End function
+
+'Depreciated 04/25/2016
+FUNCTION worker_county_code_determination(x, y)
+	veronica_message = MsgBox ("This script uses worker_county_code_determination, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
+    get_county_code
+End function
+
 FUNCTION write_TIKL_function(variable)									'DEPRECIATED AS OF 01/20/2015.
+	veronica_message = MsgBox ("This script uses write_TIKL_function, a depreciated function. If you are seeing this message, let a scripts administrator know right away: a function in a custom script may need to be updated. Without said update, this script might become unavailable on or before June 27, 2016.", vbExclamation)
 	call write_variable_in_TIKL(variable)
 END FUNCTION
