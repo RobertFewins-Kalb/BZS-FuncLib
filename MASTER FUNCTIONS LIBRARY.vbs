@@ -2811,6 +2811,10 @@ function new_service_heading
   end if
 End function
 
+Function open_URL_in_browser(URL_to_open)
+	CreateObject("WScript.Shell").Run(URL_to_open)
+End function
+
 Function panel_navigation_next
   EMReadScreen current_panel, 1, 2, 73
   EMReadScreen amount_of_panels, 1, 2, 78
