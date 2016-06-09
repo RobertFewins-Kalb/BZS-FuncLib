@@ -37,6 +37,8 @@ CM_plus_2_yr =  right(                  DatePart("yyyy",        DateAdd("m", 2, 
 If worker_county_code   = "" then worker_county_code = "MULTICOUNTY"
 county_name = ""
 
+If ButtonPressed <> "" then ButtonPressed = ""		'Defines ButtonPressed if not previously defined, allowing scripts the benefit of not having to declare ButtonPressed all the time
+
 '=========================================================================================================================================================================== FUNCTIONS RELATED TO GLOBAL CONSTANTS
 FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
 	'See Combined Manual 0019.06
@@ -2807,6 +2809,10 @@ function new_service_heading
     EMSendKey "--------------SERVICE--------------------AMOUNT----------STATUS--------------" & "<newline>"
     MAXIS_service_row = 5
   end if
+End function
+
+Function open_URL_in_browser(URL_to_open)
+	CreateObject("WScript.Shell").Run(URL_to_open)
 End function
 
 Function panel_navigation_next
