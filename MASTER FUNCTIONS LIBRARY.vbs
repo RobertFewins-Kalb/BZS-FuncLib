@@ -134,7 +134,7 @@ END FUNCTION
 
 '=========================================================================================================================================================================== CLASSES USED BY SCRIPTS
 'A class for each script item
-class script
+class script_bowie
 
     'Stuff the user indicates
 	public script_name             	'The familiar name of the script (file name without file extension or category, and using familiar case)
