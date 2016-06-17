@@ -134,24 +134,45 @@ END FUNCTION
 
 '=========================================================================================================================================================================== CLASSES USED BY SCRIPTS
 'A class for each script item
-class script
+class script_bowie
 
-	public script_name             	'The familiar name of the script
-	public file_name               	'The actual file name
+    'Stuff the user indicates
+	public script_name             	'The familiar name of the script (file name without file extension or category, and using familiar case)
 	public description             	'The description of the script
 	public button                  	'A variable to store the actual results of ButtonPressed (used by much of the script functionality)
+	public SIR_instructions_button	'A variable to store the actual results of ButtonPressed (used by much of the script functionality)
     public category               	'The script category (ACTIONS/BULK/etc)
-    public SIR_instructions_URL    	'The instructions URL in SIR
+	public workflows               	'The script workflows associated with this script (Changes Reported, Applications, etc)
+    public subcategory				'An array of all subcategories a script might exist in, such as "LTC" or "A-F"
+	public release_date				'This allows the user to indicate when the script goes live (controls NEW!!! messaging)
+    
+    'Details the menus will figure out (does not need to be explicitly declared)
     public button_plus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the add button.
 	public button_minus_increment	'Workflow scripts use a special increment for buttons (adding or subtracting from total times to run). This is the minus button.
 	public total_times_to_run		'A variable for the total times the script should run
-	public subcategory				'An array of all subcategories a script might exist in, such as "LTC" or "A-F"
 
-	public property get button_size	'This part determines the size of the button dynamically by determining the length of the script name, multiplying that by 3.5, rounding the decimal off, and adding 10 px
-		button_size = round ( len( script_name ) * 3.5 ) + 10
-	end property
+    'Details the class itself figures out
+	public property get script_URL
+		If run_locally = true then
+			script_repository = "C:\DHS-MAXIS-Scripts\Script Files\"
+			script_URL = script_repository & ucase(category) & "\" & ucase(category & " - " & script_name) & ".vbs"
+		Else
+        	If script_repository = "" then script_repository = "https://raw.githubusercontent.com/MN-Script-Team/DHS-MAXIS-Scripts/master/Script%20Files/"    'Assumes we're scriptwriters
+        	script_URL = script_repository & ucase(category) & "/" & replace(ucase(category & "%20-%20" & script_name) & ".vbs", " ", "%20")
+		End if
+    end property
+    
+    public property get SIR_instructions_URL 'The instructions URL in SIR
+        SIR_instructions_URL = "https://www.dhssir.cty.dhs.state.mn.us/MAXIS/blzn/Script%20Instructions%20Wiki/" & replace(ucase(script_name) & ".aspx", " ", "%20")
+    end property
 
 end class
+
+'A class for script subcategories
+class subcat
+	public subcat_name
+	public subcat_button
+End class
 
 'BELOW ARE THE ACTUAL FUNCTIONS----------------------------------------------------------------------------------------------------
 
@@ -1938,6 +1959,100 @@ Function create_panel_if_nonexistent()
 		End If
 	End If
 End Function
+
+Function declare_main_menu_dialog(script_category)
+
+	'Runs through each script in the array and generates a list of subcategories based on the category located in the function. Also modifies the script description if it's from the last two months, to include a "NEW!!!" notification.
+	For current_script = 0 to ubound(script_array)
+		'Subcategory handling (creating a second list as a string which gets converted later to an array)
+		If ucase(script_array(current_script).category) = ucase(script_category) then																								'If the script in the array is of the correct category (ACTIONS/NOTES/ETC)...
+			For each listed_subcategory in script_array(current_script).subcategory																									'...then iterate through each listed subcategory, and...
+				If listed_subcategory <> "" and InStr(subcategory_list, ucase(listed_subcategory)) = 0 then subcategory_list = subcategory_list & "|" & ucase(listed_subcategory)	'...if the listed subcategory isn't blank and isn't already in the list, then add it to our handy-dandy list.	
+			Next
+		End if
+		'Adds a "NEW!!!" notification to the description if the script is from the last two months.
+		If DateDiff("m", script_array(current_script).release_date, DateAdd("m", -2, date)) <= 0 then 
+			script_array(current_script).description = "NEW " & script_array(current_script).release_date & "!!! --- " & script_array(current_script).description
+			script_array(current_script).release_date = "12/12/1999" 'backs this out and makes it really old so it doesn't repeat each time the dialog loops. This prevents NEW!!!... from showing multiple times in the description.
+		End if
+		
+	Next
+	
+	subcategory_list = split(subcategory_list, "|")
+	
+	For i = 0 to ubound(subcategory_list)
+		ReDim Preserve subcategory_array(i)
+		set subcategory_array(i) = new subcat
+		If subcategory_list(i) = "" then subcategory_list(i) = "MAIN"
+		subcategory_array(i).subcat_name = subcategory_list(i)
+	Next
+	
+	BeginDialog dialog1, 0, 0, 600, 400, script_category & " scripts main menu dialog"
+	 	Text 5, 5, 435, 10, script_category & " scripts main menu: select the script to run from the choices below."
+	  	ButtonGroup ButtonPressed
+		
+		
+		'SUBCATEGORY HANDLING--------------------------------------------
+		
+		subcat_button_position = 5
+		
+		For i = 0 to ubound(subcategory_array)
+		
+			
+		
+			'Displays the button and text description-----------------------------------------------------------------------------------------------------------------------------
+			'FUNCTION		HORIZ. ITEM POSITION	VERT. ITEM POSITION		ITEM WIDTH	ITEM HEIGHT		ITEM TEXT/LABEL										BUTTON VARIABLE
+			PushButton 		subcat_button_position, 20, 					50, 		15, 			subcategory_array(i).subcat_name, 					subcat_button_placeholder
+			
+			subcategory_array(i).subcat_button = subcat_button_placeholder	'The .button property won't carry through the function. This allows it to escape the function. Thanks VBScript.
+			subcat_button_position = subcat_button_position + 50
+			subcat_button_placeholder = subcat_button_placeholder + 1
+		Next
+				
+		
+		'SCRIPT LIST HANDLING--------------------------------------------
+		
+		
+		'' 	PushButton 445, 10, 65, 10, "SIR instructions", 	SIR_instructions_button
+		'This starts here, but it shouldn't end here :)
+		vert_button_position = 50
+
+		For current_script = 0 to ubound(script_array)
+			If ucase(script_array(current_script).category) = ucase(script_category) then
+			
+				'<<<<<<RIGHT HERE IT SHOULD ITERATE THROUGH SUBCATEGORIES AND BUTTONS PRESSED TO DETERMINE WHAT THE CURRENTLY DISPLAYED SUBCATEGORY SHOULD BE, THEN ONLY DISPLAY SCRIPTS THAT MATCH THAT CRITERIA
+				'Joins all subcategories together
+				subcategory_string = ucase(join(script_array(current_script).subcategory))
+				
+				'Accounts for scripts without subcategories
+				If subcategory_string = "" then subcategory_string = "MAIN"		'<<<THIS COULD BE A PROPERTY OF THE CLASS
+				
+				'If the selected subcategory is in the subcategory string, it will display those scripts
+				If InStr(subcategory_string, subcategory_selected) <> 0 then 
+				
+				
+
+			
+					SIR_button_placeholder = button_placeholder + 1	'We always want this to be one more than the button_placeholder
+				
+					'Displays the button and text description-----------------------------------------------------------------------------------------------------------------------------
+					'FUNCTION		HORIZ. ITEM POSITION	VERT. ITEM POSITION		ITEM WIDTH	ITEM HEIGHT		ITEM TEXT/LABEL										BUTTON VARIABLE
+					PushButton 		5, 						vert_button_position, 	10, 		10, 			"?", 												SIR_button_placeholder
+					PushButton 		18,						vert_button_position, 	120, 		10, 			script_array(current_script).script_name, 			button_placeholder
+					Text 			120 + 23, 				vert_button_position, 	500, 		10, 			"--- " & script_array(current_script).description
+					'----------
+					vert_button_position = vert_button_position + 15	'Needs to increment the vert_button_position by 15px (used by both the text and buttons)
+					'----------
+					script_array(current_script).button = button_placeholder	'The .button property won't carry through the function. This allows it to escape the function. Thanks VBScript.
+					script_array(current_script).SIR_instructions_button = SIR_button_placeholder	'The .button property won't carry through the function. This allows it to escape the function. Thanks VBScript.
+					button_placeholder = button_placeholder + 2
+				End if
+			End if
+		next
+		
+		CancelButton 540, 380, 50, 15
+	EndDialog
+End function
 
 Function end_excel_and_script
   objExcel.Workbooks.Close
