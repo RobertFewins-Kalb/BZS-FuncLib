@@ -1827,6 +1827,44 @@ function convert_digit_to_excel_column(col_in_excel)
 	If col_in_excel >= 105 then script_end_procedure("This script is only able to assign excel columns to 104 distinct digits. You've exceeded this number, and this script cannot continue.")
 end function
 
+'This function is used to grab all active X numbers according to the supervisor X number(s) inputted
+FUNCTION create_array_of_all_active_x_numbers_by_supervisor(array_name, supervisor_array)
+	'Getting to REPT/USER
+	CALL navigate_to_MAXIS_screen("REPT", "USER")
+
+	'Sorting by supervisor
+	PF5
+	PF5
+
+	'Reseting array_name
+	array_name = ""
+
+	'Splitting the list of inputted supervisors...
+	supervisor_array = replace(supervisor_array, " ", "")
+	supervisor_array = split(supervisor_array, ",")
+	FOR EACH unit_supervisor IN supervisor_array
+		IF unit_supervisor <> "" THEN 
+			'Entering the supervisor number and sending a transmit
+			CALL write_value_and_transmit(unit_supervisor, 21, 12)
+			
+			MAXIS_row = 7
+			DO
+				EMReadScreen worker_ID, 8, MAXIS_row, 5
+				worker_ID = trim(worker_ID)
+				IF worker_ID = "" THEN EXIT DO
+				array_name = trim(array_name & " " & worker_ID)
+				MAXIS_row = MAXIS_row + 1
+				IF MAXIS_row = 19 THEN 
+					PF8
+					MAXIS_row = 7
+				END IF
+			LOOP
+		END IF
+	NEXT
+	'Preparing array_name for use...
+	array_name = split(array_name)
+END FUNCTION
+
 Function create_array_of_all_active_x_numbers_in_county(array_name, county_code)
 	'Getting to REPT/USER
 	call navigate_to_MAXIS_screen("rept", "user")
