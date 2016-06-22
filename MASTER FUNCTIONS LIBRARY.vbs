@@ -4049,8 +4049,23 @@ Function write_panel_to_MAXIS_ACCT(acct_type, acct_numb, acct_location, acct_bal
 	Emwritescreen acct_type, 6, 44  'enters the account type code
 	Emwritescreen acct_numb, 7, 44  'enters the account number
 	Emwritescreen acct_location, 8, 44  'enters the account location
-	Emwritescreen acct_balance, 10, 46  'enters the balance
-	Emwritescreen acct_bal_ver, 10, 63  'enters the balance verification
+
+	' >>>>> Comment: Updated 06/22/2016 <<<<<
+	' >>>>> Looking for the acct_bal_ver location. This changed with asset unification...
+	' >>>>> ... but the location is not the same across all months. It needs to be variable...
+	' >>>>> ... so Krabappel knows where to write stuff and junk or whatever ...
+	' >>>>> This has been tested on training case 226398 for the benefit months 05/16 and 06/16...
+	' >>>>> ... in 05/16 the acct_bal_ver coordinates are 10, 63 and in 06/16, they are 10, 64...
+	' >>>>> ... and the code is working in both months.
+	' >>> Looking for the balance field and then we will write the verif code on the same line...
+	acct_row = 1
+	acct_col = 1
+	EMSearch "Balance: ", acct_row, acct_col
+	EMWriteScreen acct_balance, acct_row, acct_col + 11  'enters the balance
+	acct_col = 1
+	EMSearch "Ver: ", acct_row, acct_col
+	EMWriteScreen acct_bal_ver, acct_row, acct_col + 5  'enters the balance verification
+	
 	IF acct_date <> "" THEN call create_MAXIS_friendly_date(acct_date, 0, 11, 44)  'enters the account balance date in a MAXIS friendly format. mm/dd/yy
 	Emwritescreen acct_withdraw, 12, 46  'enters the withdrawl penalty
 	Emwritescreen acct_cash_count, 14, 50  'enters y/n if counted for cash
