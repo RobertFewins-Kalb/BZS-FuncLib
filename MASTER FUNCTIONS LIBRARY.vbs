@@ -2845,22 +2845,6 @@ function navigation_buttons 'this works by calling the navigation_buttons functi
   If ButtonPressed = UNEA_button then call navigate_to_MAXIS_screen("stat", "UNEA")
 End function
 
-function new_BS_BSI_heading
-  EMGetCursor MAXIS_row, MAXIS_col
-  If MAXIS_row = 4 then
-    EMSendKey "--------BURIAL SPACE/ITEMS---------------AMOUNT----------STATUS--------------" & "<newline>"
-    MAXIS_row = 5
-  end if
-End function
-
-function new_CAI_heading
-  EMGetCursor MAXIS_row, MAXIS_col
-  If MAXIS_row = 4 then
-    EMSendKey "--------CASH ADVANCE ITEMS---------------AMOUNT----------STATUS--------------" & "<newline>"
-    MAXIS_row = 5
-  end if
-End function
-
 function new_page_check
   EMGetCursor MAXIS_row, MAXIS_col
   If MAXIS_row = 17 then
@@ -2870,14 +2854,6 @@ function new_page_check
     MAXIS_row = 4
   End if
 end function
-
-function new_service_heading
-  EMGetCursor MAXIS_service_row, MAXIS_service_col
-  If MAXIS_service_row = 4 then
-    EMSendKey "--------------SERVICE--------------------AMOUNT----------STATUS--------------" & "<newline>"
-    MAXIS_service_row = 5
-  end if
-End function
 
 Function open_URL_in_browser(URL_to_open)
 	CreateObject("WScript.Shell").Run(URL_to_open)
