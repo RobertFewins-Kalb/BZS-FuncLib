@@ -39,6 +39,23 @@ county_name = ""
 
 If ButtonPressed <> "" then ButtonPressed = ""		'Defines ButtonPressed if not previously defined, allowing scripts the benefit of not having to declare ButtonPressed all the time
 
+'Preloading worker_signature, as a constant to be used in scripts---------------------------------------------------------------------------------------------------------
+
+'Needs to determine MyDocs directory before proceeding.
+Set wshshell = CreateObject("WScript.Shell")
+user_myDocs_folder = wshShell.SpecialFolders("MyDocuments") & "\"
+
+'Now it determines the signature
+With (CreateObject("Scripting.FileSystemObject"))															'Creating an FSO
+	If .FileExists(user_myDocs_folder & "workersig.txt") Then												'If the workersig.txt file exists...
+		Set get_worker_sig = CreateObject("Scripting.FileSystemObject")										'Create another FSO
+		Set worker_sig_command = get_worker_sig.OpenTextFile(user_myDocs_folder & "workersig.txt")			'Open the text file
+		worker_sig = worker_sig_command.ReadAll																'Read the text file
+		IF worker_sig <> "" THEN worker_signature = worker_sig												'If it isn't blank then the worker_signature should be populated with the contents of the file
+		worker_sig_command.Close																			'Closes the file
+	END IF
+END WITH
+
 '=========================================================================================================================================================================== FUNCTIONS RELATED TO GLOBAL CONSTANTS
 FUNCTION income_test_SNAP_categorically_elig(household_size, income_limit)
 	'See Combined Manual 0019.06
